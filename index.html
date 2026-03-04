@@ -1360,7 +1360,12 @@ function renderDashboard() {
         <div class="ball-count">${balls.length}</div>
       </div>
       ${balls.slice(0,3).map(b => ballCardMini(b)).join('')}
-      ${balls.length > 3 ? `<div style="text-align:center;font-size:12px;color:var(--text-light);margin-top:6px">他 ${balls.length-3} 件</div>` : ''}
+      ${balls.length > 3 ? `
+        <div id="extra-${m.id}" style="display:none">${balls.slice(3).map(b => ballCardMini(b)).join('')}</div>
+        <button id="extra-btn-${m.id}" onclick="toggleExtra('${m.id}',${balls.length-3})"
+          style="width:100%;text-align:center;font-size:12px;color:var(--text-light);margin-top:6px;background:none;border:none;cursor:pointer;padding:8px 0;font-family:inherit">
+          他 ${balls.length-3} 件を表示 ∨
+        </button>` : ''}
     </div>`;
   });
 
@@ -1962,6 +1967,16 @@ function doDeleteMember(memberId) {
 // ────────────────────────────────────────
 // NAVIGATION
 // ────────────────────────────────────────
+function toggleExtra(memberId, count) {
+  const el  = document.getElementById('extra-' + memberId);
+  const btn = document.getElementById('extra-btn-' + memberId);
+  if (!el) return;
+  const isHidden = el.style.display === 'none';
+  el.style.display  = isHidden ? 'block' : 'none';
+  btn.textContent   = isHidden ? '折りたたむ ∧' : `他 ${count} 件を表示 ∨`;
+  if (isHidden) setTimeout(renderQR, 0);
+}
+
 function setTab(tab) { curTab = tab; curBallId = null; if (tab==='balls') curFilter='all'; render(); }
 function setFilter(f) { curFilter = f; render(); }
 function viewBall(id) { curBallId = id; render(); window.scrollTo(0,0); }
