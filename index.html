@@ -749,6 +749,56 @@
       line-height: 1.5;
       font-family: 'SF Mono', 'Consolas', monospace;
     }
+
+    /* ── SHARE BOX ── */
+    .share-box {
+      background: #EFF6FF;
+      border: 1.5px solid #BFDBFE;
+      border-radius: var(--r);
+      padding: 12px 14px;
+      margin-bottom: 10px;
+    }
+    .share-box-label {
+      font-size: 11px;
+      font-weight: 800;
+      color: #2563EB;
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+      margin-bottom: 8px;
+    }
+    .share-url-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .share-url-text {
+      flex: 1;
+      font-size: 11px;
+      color: #1D4ED8;
+      font-family: 'SF Mono', 'Consolas', monospace;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      background: white;
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid #BFDBFE;
+      min-width: 0;
+    }
+    .share-copy-btn {
+      flex-shrink: 0;
+      padding: 8px 14px;
+      background: #2563EB;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: inherit;
+    }
+    .share-copy-btn:active { transform: scale(0.93); background: #1D4ED8; }
   </style>
 </head>
 <body>
@@ -879,6 +929,7 @@ let localMode = false;
 let loading   = false;
 let _loadedMembers = false;
 let _loadedBalls   = false;
+let _pendingBallId = null; // URLパラメータから取得したballId
 
 // ────────────────────────────────────────
 // STATE
@@ -974,6 +1025,20 @@ function fmtDT(iso) {
 
 const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 
+function generateShareUrl(ballId) {
+  if (localMode || !roomCode) return null;
+  const base = window.location.origin + window.location.pathname;
+  return `${base}?room=${encodeURIComponent(roomCode)}&ball=${encodeURIComponent(ballId)}`;
+}
+
+function copyShareUrl(ballId) {
+  const url = generateShareUrl(ballId);
+  if (!url) return;
+  navigator.clipboard.writeText(url)
+    .then(() => toast('🔗 共有URLをコピーしました！'))
+    .catch(() => toast('🔗 ' + url));
+}
+
 function avHTML(member, size = '') {
   const cls = 'av' + (size ? ` av-${size}` : '');
   if (!member) return `<div class="${cls}" style="background:#A0AEC0">?</div>`;
@@ -1036,6 +1101,10 @@ function checkAllLoaded() {
   if (_loadedMembers && _loadedBalls && loading) {
     loading = false;
     updateConnBadge(true);
+    if (_pendingBallId) {
+      if (getBall(_pendingBallId)) curBallId = _pendingBallId;
+      _pendingBallId = null;
+    }
   }
 }
 
@@ -1114,6 +1183,10 @@ function doSetup() {
   try {
     saveSetup(config, room);
     initFirebase(config, room);
+    const params = new URLSearchParams(window.location.search);
+    const urlRoom = params.get('room');
+    const urlBall = params.get('ball');
+    if (urlRoom === room && urlBall) _pendingBallId = urlBall;
     hideSetupScreen();
     render();
   } catch(e) {
@@ -1381,6 +1454,17 @@ function renderDetail(ballId) {
       <span class="info-val">${ball.history.filter(h=>h.type==='throw').length} 回</span>
     </div>
   </div>`;
+
+  const shareUrl = generateShareUrl(ball.id);
+  if (shareUrl) {
+    h += `<div class="share-box">
+      <div class="share-box-label">🔗 このタスクを共有</div>
+      <div class="share-url-row">
+        <div class="share-url-text">${esc(shareUrl)}</div>
+        <button class="share-copy-btn" onclick="copyShareUrl('${ball.id}')">コピー</button>
+      </div>
+    </div>`;
+  }
 
   if (!isDone) {
     h += `<button class="btn-main" onclick="showThrowModal('${ball.id}')">➤ 別のメンバーに投げる</button>
@@ -1917,15 +2001,26 @@ function initDemo() {
 // STARTUP
 // ────────────────────────────────────────
 (function init() {
+  const params = new URLSearchParams(window.location.search);
+  const urlRoom = params.get('room');
+  const urlBall = params.get('ball');
+
   const setup = loadSetup();
   if (setup && setup.config && setup.roomCode) {
     try {
       initFirebase(setup.config, setup.roomCode);
+      if (urlRoom === setup.roomCode && urlBall) _pendingBallId = urlBall;
       hideSetupScreen();
       render(); // shows spinner while listeners load
     } catch(e) {
       console.error('Firebase init failed:', e);
       showSetupScreen();
+    }
+  } else {
+    // セットアップ未完了の場合、URLのルームコードをフォームに自動入力
+    if (urlRoom) {
+      const inp = document.getElementById('setup-room');
+      if (inp) inp.value = urlRoom;
     }
   }
   // else: setup screen stays visible (default)
