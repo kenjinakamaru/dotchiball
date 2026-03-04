@@ -1018,20 +1018,33 @@ function daysUntil(dateStr) {
 function urgency(ball) {
   if (ball.status !== 'active') return 'done';
   if (!ball.dueDate) return 'no-date';
-  const d = daysUntil(ball.dueDate);
-  if (d < 0)  return 'urgent';
-  if (d <= 2) return 'urgent';
-  if (d <= 7) return 'warning';
+  const mins = minutesUntil(ball.dueDate);
+  if (mins < 0)    return 'urgent';
+  if (mins <= 2880) return 'urgent';   // 2日以内
+  if (mins <= 10080) return 'warning'; // 7日以内
   return 'normal';
+}
+
+function minutesUntil(dateStr) {
+  if (!dateStr) return null;
+  return (new Date(dateStr) - new Date()) / 60000;
 }
 
 function fmtDue(dueDate) {
   if (!dueDate) return '期限なし';
-  const d = daysUntil(dueDate);
-  if (d < 0)  return `${Math.abs(d)}日超過！`;
-  if (d === 0) return '今日まで！';
-  if (d === 1) return '明日まで！';
-  if (d <= 7)  return `あと${d}日`;
+  const mins = minutesUntil(dueDate);
+  if (mins < 0) {
+    const absMins = Math.abs(Math.round(mins));
+    if (absMins < 60) return `${absMins}分超過！`;
+    const absHours = Math.floor(absMins / 60);
+    if (absHours < 24) return `${absHours}時間超過！`;
+    return `${Math.floor(absHours / 24)}日超過！`;
+  }
+  if (mins <= 10)  return `あと${Math.round(mins)}分！`;
+  if (mins <= 60)  return `あと${Math.round(mins)}分`;
+  if (mins <= 1440) return `あと${Math.floor(mins/60)}時間`;
+  const days = Math.ceil(mins / 1440);
+  if (days <= 7) return `あと${days}日`;
   const dt = new Date(dueDate);
   return `${dt.getMonth()+1}/${dt.getDate()}まで`;
 }
@@ -1039,7 +1052,10 @@ function fmtDue(dueDate) {
 function fmtDate(dueDate) {
   if (!dueDate) return '未設定';
   const dt = new Date(dueDate);
-  return `${dt.getFullYear()}年${dt.getMonth()+1}月${dt.getDate()}日`;
+  const hasTime = dueDate.includes('T') && !dueDate.endsWith('T00:00');
+  const base = `${dt.getFullYear()}年${dt.getMonth()+1}月${dt.getDate()}日`;
+  if (!hasTime) return base;
+  return `${base} ${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`;
 }
 
 function fmtDT(iso) {
@@ -1616,7 +1632,7 @@ function showCreateModal(defaultHolderId = null, preHolder = null) {
     </div>
     <div class="fgroup">
       <label class="flabel">期限（任意）</label>
-      <input class="finput" id="f-due" type="date" min="${new Date().toISOString().split('T')[0]}">
+      <input class="finput" id="f-due" type="datetime-local" min="${new Date().toISOString().slice(0,16)}">
     </div>
     <div class="fgroup">
       <label class="flabel">優先度</label>
@@ -2047,9 +2063,51 @@ function initDemo() {
 }
 
 // ────────────────────────────────────────
-// EMAIL NOTIFICATION
+// EMAIL NOTIFICATION & REMINDER
 // ────────────────────────────────────────
 emailjs.init(EMAILJS_PUBLIC_KEY);
+
+const REMINDER_KEY = 'dotchiball_reminders_v1';
+
+function loadSentReminders() {
+  try { return JSON.parse(localStorage.getItem(REMINDER_KEY) || '{}'); } catch(_) { return {}; }
+}
+
+function markReminderSent(ballId) {
+  const r = loadSentReminders();
+  r[ballId] = new Date().toISOString();
+  localStorage.setItem(REMINDER_KEY, JSON.stringify(r));
+}
+
+function hasReminderSent(ballId) {
+  return !!loadSentReminders()[ballId];
+}
+
+function checkReminders() {
+  if (localMode || !db) return;
+  activeBalls().forEach(ball => {
+    if (!ball.dueDate || hasReminderSent(ball.id)) return;
+    const mins = minutesUntil(ball.dueDate);
+    if (mins !== null && mins >= 0 && mins <= 10) {
+      const holder = getMember(ball.currentHolder);
+      if (holder && holder.email) {
+        emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+          to_name:    holder.name,
+          email:      holder.email,
+          ball_title: ball.title,
+          due_date:   fmtDate(ball.dueDate),
+          priority:   priLabel(ball.priority),
+          note:       '⏰ 期限10分前のリマインダーです',
+          ball_url:   generateShareUrl(ball.id) || '',
+        }).catch(err => console.warn('リマインダーメール失敗:', err));
+        markReminderSent(ball.id);
+        toast(`⏰ 「${ball.title}」の期限が10分後です`);
+      }
+    }
+  });
+}
+
+setInterval(checkReminders, 60000); // 1分ごとにチェック
 
 function sendEmailNotification(ball, toMember, note) {
   if (!toMember || !toMember.email) return;
