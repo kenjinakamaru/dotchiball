@@ -1291,21 +1291,19 @@ function render() {
 // ────────────────────────────────────────
 function renderDashboard() {
   if (state.members.length === 0) {
-    return h + `<div class="empty" style="padding-top:48px">
+    return `<div class="empty" style="padding-top:48px">
       <div class="empty-icon">⚾</div>
       <div class="empty-title">ようこそ！</div>
       <div class="empty-text">チームメンバーを登録して<br>ボールを投げ合いましょう！<br><br>責任の所在を一目で把握できます。</div>
       <button class="btn-main" onclick="showAddMember()" style="max-width:240px">👥 メンバーを追加する</button>
-    </div>`;
+    </div>` + renderQRCard();
   }
 
   const active  = activeBalls();
   const overdue = active.filter(b => { const d=daysUntil(b.dueDate); return d!==null && d<0; });
   const soon    = active.filter(b => { const d=daysUntil(b.dueDate); return d!==null && d>=0 && d<=2; });
 
-  let h = renderQRCard();
-
-  h += `<div class="stats-grid">
+  let h = `<div class="stats-grid">
     <div class="stat-card">
       <div class="stat-num">${active.length}</div>
       <div class="stat-lbl">⚾ 総ボール</div>
@@ -1326,7 +1324,7 @@ function renderDashboard() {
       <div class="empty-title">ボールなし！</div>
       <div class="empty-text">今は誰もボールを持っていません。<br>新しいタスクを投げましょう！</div>
     </div>`;
-    return h;
+    return h + renderQRCard();
   }
 
   h += `<div class="sec-title">メンバー別ボール</div>`;
@@ -1355,7 +1353,7 @@ function renderDashboard() {
     </div>`;
   }
 
-  return h;
+  return h + renderQRCard();
 }
 
 function ballCardMini(ball) {
