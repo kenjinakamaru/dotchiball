@@ -1322,8 +1322,8 @@ function renderDashboard() {
   }
 
   const active  = activeBalls();
-  const overdue = active.filter(b => { const d=daysUntil(b.dueDate); return d!==null && d<0; });
-  const soon    = active.filter(b => { const d=daysUntil(b.dueDate); return d!==null && d>=0 && d<=2; });
+  const overdue = active.filter(b => { const m=minutesUntil(b.dueDate); return m!==null && m<0; });
+  const soon    = active.filter(b => { const m=minutesUntil(b.dueDate); return m!==null && m>=0 && m<=2880; });
 
   let h = `<div class="stats-grid">
     <div class="stat-card">
