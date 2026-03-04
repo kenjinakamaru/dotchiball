@@ -848,37 +848,7 @@
     <div class="setup-tagline">チームでリアルタイム共有</div>
 
     <div class="setup-step">
-      <div class="setup-step-title">STEP 1 — Firebase の設定</div>
-      <a href="https://console.firebase.google.com" target="_blank" rel="noopener" class="setup-link">
-        console.firebase.google.com ↗
-      </a>
-      <div class="setup-hint">
-        <ol>
-          <li>プロジェクトを作成</li>
-          <li>Webアプリを登録</li>
-          <li>Firestore を作成（テストモードでOK）</li>
-          <li>設定オブジェクトをコピー</li>
-        </ol>
-      </div>
-      <textarea class="finput" id="setup-config"
-        placeholder='{"apiKey":"...","authDomain":"...","projectId":"...","storageBucket":"...","messagingSenderId":"...","appId":"..."}'
-        style="min-height:110px;font-size:11px;font-family:monospace;letter-spacing:0"></textarea>
-
-      <div class="setup-rules">
-        <div class="setup-rules-title">Firestore セキュリティルール（コンソールで設定）</div>
-        <pre>rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /rooms/{roomId}/{document=**} {
-      allow read, write: if true;
-    }
-  }
-}</pre>
-      </div>
-    </div>
-
-    <div class="setup-step">
-      <div class="setup-step-title">STEP 2 — ルームコード</div>
+      <div class="setup-step-title">ルームコードを入力</div>
       <div class="setup-hint">同じコードを入力すると同じデータを共有できます</div>
       <div class="room-row">
         <input class="finput" id="setup-room" type="text" placeholder="ABC123"
@@ -919,6 +889,14 @@ service cloud.firestore {
 const SETUP_KEY   = 'dotchiball_setup_v1';
 const STORAGE_KEY = 'dotchiball_v2'; // local mode only
 const COLORS = ['#3B82F6','#EF4444','#10B981','#F59E0B','#8B5CF6','#EC4899','#14B8A6','#F97316'];
+const EMBEDDED_CONFIG = {
+  apiKey: "AIzaSy-MUGIRDg4-8RtxTIYwIcc0Bw07oXI",
+  authDomain: "dotchiball.firebaseapp.com",
+  projectId: "dotchiball",
+  storageBucket: "dotchiball.firebasestorage.app",
+  messagingSenderId: "362102680084",
+  appId: "1:362102680084:web:eb4d6b848a79c93b119505"
+};
 
 // ────────────────────────────────────────
 // FIREBASE GLOBALS
@@ -1163,26 +1141,12 @@ function parseFirebaseConfig(str) {
 }
 
 function doSetup() {
-  const configStr = document.getElementById('setup-config').value.trim();
-  const room      = document.getElementById('setup-room').value.trim().toUpperCase();
-
-  if (!configStr) { toast('Firebase設定を貼り付けてください'); return; }
-  if (!room)      { toast('ルームコードを入力してください'); return; }
-
-  const config = parseFirebaseConfig(configStr);
-  if (!config) {
-    toast('設定のJSONが正しくありません');
-    return;
-  }
-
-  if (!config.apiKey || !config.projectId) {
-    toast('apiKey と projectId が必要です');
-    return;
-  }
+  const room = document.getElementById('setup-room').value.trim().toUpperCase();
+  if (!room) { toast('ルームコードを入力してください'); return; }
 
   try {
-    saveSetup(config, room);
-    initFirebase(config, room);
+    saveSetup(EMBEDDED_CONFIG, room);
+    initFirebase(EMBEDDED_CONFIG, room);
     const params = new URLSearchParams(window.location.search);
     const urlRoom = params.get('room');
     const urlBall = params.get('ball');
@@ -2006,9 +1970,9 @@ function initDemo() {
   const urlBall = params.get('ball');
 
   const setup = loadSetup();
-  if (setup && setup.config && setup.roomCode) {
+  if (setup && setup.roomCode) {
     try {
-      initFirebase(setup.config, setup.roomCode);
+      initFirebase(EMBEDDED_CONFIG, setup.roomCode);
       if (urlRoom === setup.roomCode && urlBall) _pendingBallId = urlBall;
       hideSetupScreen();
       render(); // shows spinner while listeners load
@@ -2023,7 +1987,6 @@ function initDemo() {
       if (inp) inp.value = urlRoom;
     }
   }
-  // else: setup screen stays visible (default)
 })();
 </script>
 </body>
