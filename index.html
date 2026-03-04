@@ -920,6 +920,8 @@
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <!-- QR Code -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<!-- EmailJS -->
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 
 <script>
 'use strict';
@@ -929,6 +931,10 @@
 const SETUP_KEY   = 'dotchiball_setup_v1';
 const STORAGE_KEY = 'dotchiball_v2'; // local mode only
 const COLORS = ['#3B82F6','#EF4444','#10B981','#F59E0B','#8B5CF6','#EC4899','#14B8A6','#F97316'];
+const EMAILJS_PUBLIC_KEY  = 'fMe4d2TI7qP8pacfn';
+const EMAILJS_SERVICE_ID  = 'service_3tnch6s';
+const EMAILJS_TEMPLATE_ID = 'template_cg18fl1';
+
 const EMBEDDED_CONFIG = {
   apiKey: "AIzaSy-MUGIRDg4-8RtxTIYwIcc0Bw07oXI",
   authDomain: "dotchiball.firebaseapp.com",
@@ -1676,6 +1682,10 @@ function showAddMember(editId = null) {
       <input class="finput" id="f-mname" type="text" placeholder="例: 田中さん" maxlength="20" value="${m ? esc(m.name) : ''}" autocomplete="off">
     </div>
     <div class="fgroup">
+      <label class="flabel">メールアドレス（通知用・任意）</label>
+      <input class="finput" id="f-memail" type="email" placeholder="例: tanaka@example.com" value="${m?.email ? esc(m.email) : ''}" autocomplete="off">
+    </div>
+    <div class="fgroup">
       <label class="flabel">カラー</label>
       <div class="color-row" id="cp">${swatches}</div>
       <input type="hidden" id="f-mcolor" value="${initColor}">
@@ -1769,6 +1779,7 @@ function doCreateBall() {
 
   hideModal();
   const m = getMember(holder);
+  sendEmailNotification(ball, m, note);
   playThrow(() => {
     toast(`⚾ ${m?esc(m.name):'誰か'}にボールを投げました！`);
     if (localMode) render();
@@ -1798,6 +1809,7 @@ function doThrowBall(ballId) {
 
   hideModal();
   const m = getMember(newHolder);
+  sendEmailNotification(updatedBall, m, note);
   playThrow(() => {
     toast(`➤ ${m?esc(m.name):'誰か'}にパスしました！`);
     if (localMode) render();
@@ -1876,10 +1888,11 @@ function doDeleteBall(ballId) {
 
 function doAddMember() {
   const name  = document.getElementById('f-mname')?.value.trim();
+  const email = document.getElementById('f-memail')?.value.trim();
   const color = document.getElementById('f-mcolor')?.value || COLORS[0];
   if (!name) { toast('名前を入力してください'); document.getElementById('f-mname')?.focus(); return; }
 
-  const member = { id: uid(), name, color };
+  const member = { id: uid(), name, email: email || '', color };
 
   if (localMode) {
     state.members.push(member);
@@ -1895,13 +1908,14 @@ function doAddMember() {
 
 function doEditMember(memberId) {
   const name  = document.getElementById('f-mname')?.value.trim();
+  const email = document.getElementById('f-memail')?.value.trim();
   const color = document.getElementById('f-mcolor')?.value;
   if (!name) { toast('名前を入力してください'); return; }
 
   const m = getMember(memberId);
   if (!m) return;
 
-  const updatedMember = { ...m, name, color: color || m.color };
+  const updatedMember = { ...m, name, email: email || '', color: color || m.color };
 
   if (localMode) {
     const idx = state.members.findIndex(mem => mem.id === memberId);
@@ -2030,6 +2044,25 @@ function initDemo() {
   ];
 
   saveState();
+}
+
+// ────────────────────────────────────────
+// EMAIL NOTIFICATION
+// ────────────────────────────────────────
+emailjs.init(EMAILJS_PUBLIC_KEY);
+
+function sendEmailNotification(ball, toMember, note) {
+  if (!toMember || !toMember.email) return;
+  const url = generateShareUrl(ball.id) || '';
+  emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+    to_name:    toMember.name,
+    email:      toMember.email,
+    ball_title: ball.title,
+    due_date:   fmtDate(ball.dueDate),
+    priority:   priLabel(ball.priority),
+    note:       note || 'なし',
+    ball_url:   url,
+  }).catch(err => console.warn('メール送信失敗:', err));
 }
 
 // ────────────────────────────────────────
