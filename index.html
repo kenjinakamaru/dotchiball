@@ -1,0 +1,1935 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#FF6B35">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>どっちボール!?</title>
+  <style>
+    :root {
+      --primary: #FF6B35;
+      --primary-dark: #E55A24;
+      --primary-light: rgba(255,107,53,0.1);
+      --success: #27AE60;
+      --warning: #F39C12;
+      --danger: #E74C3C;
+      --bg: #F0F2F5;
+      --card: #FFFFFF;
+      --text: #1A202C;
+      --text-light: #718096;
+      --border: #E2E8F0;
+      --shadow: 0 2px 12px rgba(0,0,0,0.07);
+      --shadow-md: 0 4px 20px rgba(0,0,0,0.12);
+      --r: 16px;
+      --r-sm: 10px;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Noto Sans JP', 'YuGothic', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100dvh;
+      overflow-x: hidden;
+    }
+    #app {
+      max-width: 480px;
+      margin: 0 auto;
+      min-height: 100dvh;
+      background: var(--bg);
+      position: relative;
+      padding-bottom: 80px;
+    }
+    @media(min-width:480px) { #app { box-shadow: 0 0 60px rgba(0,0,0,0.15); } }
+
+    /* ── HEADER ── */
+    #app-header {
+      background: linear-gradient(135deg, #FF6B35 0%, #FF8C42 100%);
+      color: white;
+      padding: 14px 16px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 3px 16px rgba(255,107,53,0.35);
+    }
+    .header-row { display: flex; align-items: center; justify-content: space-between; }
+    .logo { font-size: 20px; font-weight: 900; letter-spacing: -0.5px; }
+    .logo-sub { font-size: 10px; opacity: 0.85; font-weight: 500; display: block; margin-top: 1px; }
+    .btn-throw {
+      background: rgba(255,255,255,0.22);
+      color: white;
+      border: 1.5px solid rgba(255,255,255,0.5);
+      padding: 8px 18px;
+      border-radius: 24px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: inherit;
+      backdrop-filter: blur(4px);
+    }
+    .btn-throw:active { transform: scale(0.93); background: rgba(255,255,255,0.35); }
+
+    /* ── CONNECTION BADGE ── */
+    #conn-badge {
+      display: none;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 700;
+      opacity: 0.9;
+      margin-top: 4px;
+    }
+    .conn-dot { width: 8px; height: 8px; border-radius: 50%; background: #27AE60; flex-shrink: 0; }
+    .conn-dot.offline { background: #E74C3C; }
+    .conn-dot.connecting { background: #F59E0B; animation: pulse 1s ease-in-out infinite; }
+    #room-display {
+      font-size: 10px;
+      opacity: 0.7;
+      font-weight: 600;
+      margin-top: 2px;
+      cursor: pointer;
+      display: none;
+    }
+    #room-display:hover { opacity: 1; }
+
+    /* ── BOTTOM NAV ── */
+    #bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 480px;
+      background: white;
+      border-top: 1px solid var(--border);
+      display: flex;
+      padding: 6px 0 max(6px, env(safe-area-inset-bottom));
+      z-index: 100;
+      box-shadow: 0 -2px 16px rgba(0,0,0,0.08);
+    }
+    .nav-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      padding: 4px 0;
+      border: none;
+      background: none;
+      cursor: pointer;
+      color: var(--text-light);
+      transition: color 0.2s;
+      font-family: inherit;
+    }
+    .nav-item.active { color: var(--primary); }
+    .nav-icon { font-size: 22px; line-height: 1; }
+    .nav-label { font-size: 10px; font-weight: 700; }
+
+    /* ── MAIN CONTENT ── */
+    #main-content { padding: 14px 14px 0; }
+
+    /* ── SECTION TITLE ── */
+    .sec-title {
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--text-light);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin: 20px 0 10px;
+    }
+    .sec-title:first-child { margin-top: 0; }
+
+    /* ── STATS GRID ── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+    .stat-card {
+      background: white;
+      border-radius: var(--r-sm);
+      padding: 14px 10px;
+      text-align: center;
+      box-shadow: var(--shadow);
+    }
+    .stat-num { font-size: 30px; font-weight: 900; color: var(--text); line-height: 1; }
+    .stat-lbl { font-size: 10px; color: var(--text-light); font-weight: 700; margin-top: 4px; }
+    .stat-card.danger .stat-num { color: var(--danger); }
+    .stat-card.warn .stat-num { color: var(--warning); }
+
+    /* ── BALL CARD ── */
+    .ball-card {
+      background: var(--card);
+      border-radius: var(--r);
+      padding: 14px;
+      margin-bottom: 10px;
+      box-shadow: var(--shadow);
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s;
+      border-left: 4px solid transparent;
+    }
+    .ball-card:active { transform: scale(0.98); box-shadow: var(--shadow-md); }
+    .ball-card.urgent  { border-left-color: var(--danger); }
+    .ball-card.warning { border-left-color: var(--warning); }
+    .ball-card.normal  { border-left-color: var(--success); }
+    .ball-card.no-date { border-left-color: #CBD5E0; }
+    .ball-card.done-card { opacity: 0.55; border-left-color: #A0AEC0; }
+
+    .card-top { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
+    .ball-emoji { font-size: 26px; flex-shrink: 0; line-height: 1; margin-top: 1px; }
+    .ball-info { flex: 1; min-width: 0; }
+    .ball-title { font-size: 15px; font-weight: 700; color: var(--text); line-height: 1.35; margin-bottom: 5px; }
+    .ball-desc { font-size: 12px; color: var(--text-light); line-height: 1.4; margin-bottom: 6px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .badges { display: flex; gap: 5px; flex-wrap: wrap; }
+
+    .badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 9px;
+      border-radius: 20px;
+    }
+    .badge.urgent  { background: #FEE2E2; color: var(--danger); }
+    .badge.warning { background: #FEF3C7; color: #D97706; }
+    .badge.normal  { background: #DCFCE7; color: #16A34A; }
+    .badge.no-date { background: #F1F5F9; color: var(--text-light); }
+    .badge.high    { background: #FEE2E2; color: var(--danger); }
+    .badge.medium  { background: #FEF3C7; color: #D97706; }
+    .badge.low     { background: #DCFCE7; color: #16A34A; }
+
+    .card-bottom { display: flex; align-items: center; justify-content: space-between; }
+    .holder-row { display: flex; align-items: center; gap: 7px; }
+    .holder-name { font-size: 13px; font-weight: 600; color: var(--text); }
+
+    /* ── AVATAR ── */
+    .av {
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      color: white;
+      flex-shrink: 0;
+      font-size: 13px;
+      width: 32px;
+      height: 32px;
+    }
+    .av-sm { width: 26px; height: 26px; font-size: 11px; }
+    .av-lg { width: 44px; height: 44px; font-size: 16px; }
+
+    /* ── THROW BTN ── */
+    .throw-btn {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: inherit;
+      white-space: nowrap;
+    }
+    .throw-btn:active { transform: scale(0.93); background: var(--primary-dark); }
+
+    /* ── PLAYER SECTION (dashboard) ── */
+    .player-section {
+      background: white;
+      border-radius: var(--r);
+      padding: 14px;
+      margin-bottom: 10px;
+      box-shadow: var(--shadow);
+    }
+    .ps-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .ps-left { display: flex; align-items: center; gap: 10px; }
+    .ps-name { font-size: 16px; font-weight: 800; }
+    .ball-count {
+      background: var(--primary);
+      color: white;
+      font-size: 12px;
+      font-weight: 800;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* ── FILTER TABS ── */
+    .filter-tabs {
+      display: flex;
+      gap: 7px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+      margin-bottom: 14px;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .filter-tabs::-webkit-scrollbar { display: none; }
+    .ftab {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 8px 14px;
+      border-radius: 20px;
+      border: 2px solid var(--border);
+      background: white;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s;
+      font-family: inherit;
+      color: var(--text-light);
+    }
+    .ftab.active { background: var(--primary); border-color: var(--primary); color: white; }
+    .ftab .cnt { background: rgba(255,255,255,0.3); border-radius: 10px; padding: 0 6px; font-size: 10px; }
+    .ftab:not(.active) .cnt { background: var(--bg); color: var(--text-light); }
+    .ftab-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+    /* ── MODAL ── */
+    #modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15,20,40,0.55);
+      z-index: 200;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      backdrop-filter: blur(3px);
+    }
+    #modal-overlay.hidden { display: none; }
+    .modal-sheet {
+      background: white;
+      border-radius: 24px 24px 0 0;
+      width: 100%;
+      max-width: 480px;
+      max-height: 92dvh;
+      overflow-y: auto;
+      padding: 0 16px max(20px, env(safe-area-inset-bottom));
+      animation: slideUp 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+      overscroll-behavior: contain;
+    }
+    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    .modal-handle { width: 36px; height: 4px; background: var(--border); border-radius: 2px; margin: 12px auto 16px; }
+    .modal-title { font-size: 20px; font-weight: 900; margin-bottom: 18px; }
+
+    /* ── FORMS ── */
+    .fgroup { margin-bottom: 16px; }
+    .flabel {
+      display: block;
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--text-light);
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+      margin-bottom: 7px;
+    }
+    .finput {
+      width: 100%;
+      padding: 12px 14px;
+      border: 2px solid var(--border);
+      border-radius: var(--r-sm);
+      font-size: 16px;
+      font-family: inherit;
+      transition: border-color 0.2s;
+      background: var(--bg);
+      color: var(--text);
+      outline: none;
+      -webkit-appearance: none;
+    }
+    .finput:focus { border-color: var(--primary); background: white; }
+    textarea.finput { resize: none; min-height: 80px; }
+
+    /* Player selector */
+    .player-selector { display: grid; grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); gap: 8px; }
+    .p-opt {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      padding: 12px 6px 10px;
+      border: 2px solid var(--border);
+      border-radius: var(--r-sm);
+      cursor: pointer;
+      transition: all 0.15s;
+      background: white;
+      font-family: inherit;
+    }
+    .p-opt.sel { border-color: var(--primary); background: var(--primary-light); }
+    .p-opt-name { font-size: 11px; font-weight: 700; color: var(--text); text-align: center; line-height: 1.3; }
+
+    /* Priority selector */
+    .pri-row { display: flex; gap: 7px; }
+    .pri-opt {
+      flex: 1;
+      padding: 10px 4px;
+      border: 2px solid var(--border);
+      border-radius: var(--r-sm);
+      text-align: center;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 800;
+      transition: all 0.15s;
+      background: white;
+      font-family: inherit;
+      color: var(--text-light);
+    }
+    .pri-opt.sel.high   { border-color: var(--danger);  background: #FEE2E2; color: var(--danger); }
+    .pri-opt.sel.medium { border-color: #D97706; background: #FEF3C7; color: #D97706; }
+    .pri-opt.sel.low    { border-color: var(--success); background: #DCFCE7; color: var(--success); }
+
+    /* Color picker */
+    .color-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .cswatch {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      border: 3px solid transparent;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .cswatch.sel { border-color: var(--text); transform: scale(1.18); box-shadow: 0 0 0 2px white inset; }
+
+    /* Submit / secondary buttons */
+    .btn-main {
+      width: 100%;
+      padding: 15px;
+      background: linear-gradient(135deg, #FF6B35, #FF8C42);
+      color: white;
+      border: none;
+      border-radius: var(--r);
+      font-size: 16px;
+      font-weight: 900;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: inherit;
+      margin-top: 6px;
+      box-shadow: 0 4px 16px rgba(255,107,53,0.38);
+    }
+    .btn-main:active { transform: scale(0.98); }
+    .btn-main:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
+    .btn-main.green { background: linear-gradient(135deg, #27AE60, #229954); box-shadow: 0 4px 16px rgba(39,174,96,0.35); }
+    .btn-main.red { background: linear-gradient(135deg, #E74C3C, #C0392B); box-shadow: 0 4px 16px rgba(231,76,60,0.3); }
+    .btn-sub {
+      width: 100%;
+      padding: 13px;
+      background: var(--bg);
+      color: var(--text);
+      border: none;
+      border-radius: var(--r);
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: inherit;
+      margin-top: 6px;
+    }
+    .btn-sub.danger { background: #FEE2E2; color: var(--danger); }
+
+    /* ── DETAIL VIEW ── */
+    .detail-hero {
+      background: linear-gradient(135deg, #FF6B35 0%, #FF8C42 100%);
+      padding: 14px;
+      color: white;
+      margin: -14px -14px 14px;
+    }
+    .detail-hero.urg  { background: linear-gradient(135deg, #E74C3C, #C0392B); }
+    .detail-hero.done { background: linear-gradient(135deg, #27AE60, #229954); }
+    .back-btn {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      color: rgba(255,255,255,0.88);
+      background: none;
+      border: none;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-bottom: 10px;
+      font-family: inherit;
+      padding: 0;
+    }
+    .detail-title { font-size: 22px; font-weight: 900; line-height: 1.3; margin-bottom: 10px; }
+    .hero-badges { display: flex; gap: 7px; flex-wrap: wrap; align-items: center; }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.2);
+      font-size: 12px;
+      font-weight: 700;
+      color: white;
+    }
+
+    /* Info card */
+    .info-card {
+      background: white;
+      border-radius: var(--r);
+      padding: 14px;
+      margin-bottom: 10px;
+      box-shadow: var(--shadow);
+    }
+    .info-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .info-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .info-row:first-child { padding-top: 0; }
+    .info-key { font-size: 11px; font-weight: 800; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px; }
+    .info-val { font-size: 14px; font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 6px; }
+    .info-val.muted { color: var(--text-light); font-weight: 400; font-size: 13px; }
+
+    /* ── TIMELINE ── */
+    .timeline { position: relative; padding-left: 26px; }
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 12px;
+      top: 6px;
+      bottom: 6px;
+      width: 2px;
+      background: var(--border);
+    }
+    .tl-item { position: relative; margin-bottom: 14px; }
+    .tl-dot {
+      position: absolute;
+      left: -21px;
+      top: 3px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--primary);
+      border: 2.5px solid white;
+      box-shadow: 0 0 0 2px var(--primary);
+    }
+    .tl-dot.done-dot { background: var(--success); box-shadow: 0 0 0 2px var(--success); }
+    .tl-dot.create-dot { background: #3498DB; box-shadow: 0 0 0 2px #3498DB; }
+    .tl-body { background: white; border-radius: var(--r-sm); padding: 10px 12px; box-shadow: var(--shadow); }
+    .tl-head { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-bottom: 3px; }
+    .tl-action { font-size: 12px; font-weight: 700; flex: 1; }
+    .tl-time { font-size: 10px; color: var(--text-light); white-space: nowrap; }
+    .tl-note { font-size: 12px; color: var(--text-light); margin-top: 3px; }
+
+    /* ── MEMBER CARD ── */
+    .member-card {
+      background: white;
+      border-radius: var(--r);
+      padding: 14px;
+      margin-bottom: 10px;
+      box-shadow: var(--shadow);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .mc-info { flex: 1; }
+    .mc-name { font-size: 15px; font-weight: 800; }
+    .mc-stat { font-size: 12px; color: var(--text-light); margin-top: 2px; }
+    .mc-actions { display: flex; gap: 6px; }
+    .icon-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: none;
+      background: var(--bg);
+      cursor: pointer;
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+    }
+    .icon-btn:active { transform: scale(0.9); }
+    .icon-btn.del { background: #FEE2E2; }
+
+    /* ── EMPTY STATE ── */
+    .empty { text-align: center; padding: 40px 16px; }
+    .empty-icon { font-size: 64px; margin-bottom: 14px; }
+    .empty-title { font-size: 20px; font-weight: 900; margin-bottom: 8px; }
+    .empty-text { color: var(--text-light); font-size: 14px; line-height: 1.7; margin-bottom: 20px; }
+
+    /* ── THROW ANIMATION ── */
+    #throw-anim {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255,107,53,0.08);
+    }
+    #throw-anim.hidden { display: none; }
+    .ball-fly { font-size: 64px; animation: ballFly 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
+    @keyframes ballFly {
+      0%   { transform: scale(0.3) rotate(-720deg); opacity: 0; }
+      40%  { transform: scale(1.4) rotate(-120deg); opacity: 1; }
+      100% { transform: scale(0.2) rotate(180deg) translateY(-120px); opacity: 0; }
+    }
+
+    /* ── DONE ANIMATION ── */
+    .done-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(39,174,96,0.92);
+      z-index: 600;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      animation: fadeAway 0.4s 1.6s forwards;
+    }
+    @keyframes fadeAway { to { opacity: 0; pointer-events: none; } }
+    .done-icon { font-size: 80px; animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    .done-text { font-size: 26px; font-weight: 900; margin-top: 14px; }
+    .done-sub  { font-size: 14px; opacity: 0.85; margin-top: 6px; }
+    @keyframes popIn { from { transform: scale(0); } to { transform: scale(1); } }
+
+    /* ── TOAST ── */
+    #toast {
+      position: fixed;
+      bottom: 96px;
+      left: 50%;
+      transform: translateX(-50%) translateY(16px);
+      background: #1A202C;
+      color: white;
+      padding: 11px 22px;
+      border-radius: 24px;
+      font-size: 13px;
+      font-weight: 700;
+      opacity: 0;
+      transition: all 0.25s;
+      z-index: 600;
+      white-space: nowrap;
+      pointer-events: none;
+      max-width: calc(100% - 32px);
+      text-align: center;
+    }
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* ── PULSE ANIM ── */
+    .pulse { animation: pulse 1.4s ease-in-out infinite; }
+    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.55; } }
+
+    /* ── OVERDUE GLOW ── */
+    .ball-card.urgent { box-shadow: 0 2px 12px rgba(231,76,60,0.18); }
+
+    /* ── DIVIDER ── */
+    .divider { height: 1px; background: var(--border); margin: 14px 0; }
+
+    /* ── SPINNER ── */
+    .spinner-wrap { display: flex; justify-content: center; padding: 60px 0; }
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid var(--border);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── SETUP SCREEN ── */
+    #setup-screen {
+      position: fixed;
+      inset: 0;
+      background: white;
+      z-index: 500;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    #setup-screen.hidden { display: none; }
+    .setup-inner {
+      width: 100%;
+      max-width: 480px;
+      padding: 32px 20px 40px;
+    }
+    .setup-logo {
+      font-size: 32px;
+      font-weight: 900;
+      text-align: center;
+      color: var(--primary);
+      margin-bottom: 6px;
+    }
+    .setup-tagline {
+      text-align: center;
+      font-size: 13px;
+      color: var(--text-light);
+      margin-bottom: 28px;
+    }
+    .setup-step {
+      background: var(--bg);
+      border-radius: var(--r);
+      padding: 16px;
+      margin-bottom: 14px;
+    }
+    .setup-step-title {
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--text-light);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 12px;
+    }
+    .setup-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      color: var(--primary);
+      font-size: 13px;
+      font-weight: 700;
+      text-decoration: none;
+      margin-bottom: 10px;
+    }
+    .setup-hint {
+      font-size: 12px;
+      color: var(--text-light);
+      line-height: 1.7;
+      margin-bottom: 10px;
+    }
+    .setup-hint ol { padding-left: 16px; }
+    .setup-hint li { margin-bottom: 2px; }
+    .room-row { display: flex; gap: 8px; align-items: stretch; }
+    .room-row .finput {
+      flex: 1;
+      font-size: 22px;
+      font-weight: 900;
+      text-align: center;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+    }
+    .btn-gen {
+      padding: 0 14px;
+      background: white;
+      border: 2px solid var(--border);
+      border-radius: var(--r-sm);
+      font-size: 22px;
+      cursor: pointer;
+      transition: all 0.15s;
+      flex-shrink: 0;
+    }
+    .btn-gen:active { transform: scale(0.92); }
+    .setup-divider {
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-light);
+      margin: 6px 0;
+    }
+    .setup-rules {
+      background: #F8FAFC;
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      padding: 12px;
+      margin-top: 10px;
+    }
+    .setup-rules-title {
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--text-light);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .setup-rules pre {
+      font-size: 10px;
+      color: #4A5568;
+      white-space: pre-wrap;
+      word-break: break-all;
+      line-height: 1.5;
+      font-family: 'SF Mono', 'Consolas', monospace;
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <!-- HEADER -->
+  <header id="app-header">
+    <div class="header-row">
+      <div>
+        <div class="logo">⚾ どっちボール!?</div>
+        <span class="logo-sub">ボールは今、誰にある？</span>
+        <div id="conn-badge">
+          <div class="conn-dot connecting" id="conn-dot"></div>
+          <span id="conn-text">接続中...</span>
+        </div>
+        <div id="room-display" onclick="copyRoomCode()" title="タップでコピー"></div>
+      </div>
+      <button class="btn-throw" id="btn-new">＋ 投げる</button>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main id="main-content"></main>
+
+  <!-- BOTTOM NAV -->
+  <nav id="bottom-nav">
+    <button class="nav-item active" data-tab="dashboard">
+      <span class="nav-icon">🏠</span>
+      <span class="nav-label">ホーム</span>
+    </button>
+    <button class="nav-item" data-tab="balls">
+      <span class="nav-icon">⚾</span>
+      <span class="nav-label">ボール一覧</span>
+    </button>
+    <button class="nav-item" data-tab="members">
+      <span class="nav-icon">👥</span>
+      <span class="nav-label">メンバー</span>
+    </button>
+  </nav>
+
+</div>
+
+<!-- SETUP SCREEN -->
+<div id="setup-screen">
+  <div class="setup-inner">
+    <div class="setup-logo">⚾ どっちボール!?</div>
+    <div class="setup-tagline">チームでリアルタイム共有</div>
+
+    <div class="setup-step">
+      <div class="setup-step-title">STEP 1 — Firebase の設定</div>
+      <a href="https://console.firebase.google.com" target="_blank" rel="noopener" class="setup-link">
+        console.firebase.google.com ↗
+      </a>
+      <div class="setup-hint">
+        <ol>
+          <li>プロジェクトを作成</li>
+          <li>Webアプリを登録</li>
+          <li>Firestore を作成（テストモードでOK）</li>
+          <li>設定オブジェクトをコピー</li>
+        </ol>
+      </div>
+      <textarea class="finput" id="setup-config"
+        placeholder='{"apiKey":"...","authDomain":"...","projectId":"...","storageBucket":"...","messagingSenderId":"...","appId":"..."}'
+        style="min-height:110px;font-size:11px;font-family:monospace;letter-spacing:0"></textarea>
+
+      <div class="setup-rules">
+        <div class="setup-rules-title">Firestore セキュリティルール（コンソールで設定）</div>
+        <pre>rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /rooms/{roomId}/{document=**} {
+      allow read, write: if true;
+    }
+  }
+}</pre>
+      </div>
+    </div>
+
+    <div class="setup-step">
+      <div class="setup-step-title">STEP 2 — ルームコード</div>
+      <div class="setup-hint">同じコードを入力すると同じデータを共有できます</div>
+      <div class="room-row">
+        <input class="finput" id="setup-room" type="text" placeholder="ABC123"
+          maxlength="10" autocomplete="off" autocapitalize="characters"
+          oninput="this.value=this.value.toUpperCase()">
+        <button class="btn-gen" onclick="setupGenRoom()" title="ランダム生成">🎲</button>
+      </div>
+    </div>
+
+    <button class="btn-main" onclick="doSetup()">⚾ はじめる！</button>
+    <div class="setup-divider">─ または ─</div>
+    <button class="btn-sub" onclick="useLocalMode()">ローカルモードで使う（共有なし）</button>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div id="modal-overlay" class="hidden">
+  <div class="modal-sheet" id="modal-content"></div>
+</div>
+
+<!-- THROW ANIMATION -->
+<div id="throw-anim" class="hidden">
+  <div class="ball-fly">⚾</div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- Firebase SDK (Compat) -->
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+
+<script>
+'use strict';
+// ────────────────────────────────────────
+// CONSTANTS
+// ────────────────────────────────────────
+const SETUP_KEY   = 'dotchiball_setup_v1';
+const STORAGE_KEY = 'dotchiball_v2'; // local mode only
+const COLORS = ['#3B82F6','#EF4444','#10B981','#F59E0B','#8B5CF6','#EC4899','#14B8A6','#F97316'];
+
+// ────────────────────────────────────────
+// FIREBASE GLOBALS
+// ────────────────────────────────────────
+let db        = null;
+let roomCode  = null;
+let localMode = false;
+let loading   = false;
+let _loadedMembers = false;
+let _loadedBalls   = false;
+
+// ────────────────────────────────────────
+// STATE
+// ────────────────────────────────────────
+function defaultState() {
+  return { members: [], balls: [] };
+}
+let state = defaultState();
+
+// ────────────────────────────────────────
+// SETUP PERSISTENCE
+// ────────────────────────────────────────
+function loadSetup() {
+  try {
+    const raw = localStorage.getItem(SETUP_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch(_) {}
+  return null;
+}
+
+function saveSetup(config, room) {
+  localStorage.setItem(SETUP_KEY, JSON.stringify({ config, roomCode: room }));
+}
+
+// ────────────────────────────────────────
+// LOCAL MODE PERSISTENCE
+// ────────────────────────────────────────
+function loadLocalState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch(_) {}
+  return defaultState();
+}
+
+function saveState() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(_) {}
+}
+
+// ────────────────────────────────────────
+// VIEW STATE
+// ────────────────────────────────────────
+let curTab    = 'dashboard';
+let curBallId = null;
+let curFilter = 'all';
+
+// ────────────────────────────────────────
+// HELPERS
+// ────────────────────────────────────────
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+const getMember  = id => state.members.find(m => m.id === id);
+const getBall    = id => state.balls.find(b => b.id === id);
+const activeBalls = () => state.balls.filter(b => b.status === 'active');
+const ballsByHolder = mid => activeBalls().filter(b => b.currentHolder === mid);
+
+function daysUntil(dateStr) {
+  if (!dateStr) return null;
+  const diff = (new Date(dateStr) - new Date()) / 86400000;
+  return Math.ceil(diff);
+}
+
+function urgency(ball) {
+  if (ball.status !== 'active') return 'done';
+  if (!ball.dueDate) return 'no-date';
+  const d = daysUntil(ball.dueDate);
+  if (d < 0)  return 'urgent';
+  if (d <= 2) return 'urgent';
+  if (d <= 7) return 'warning';
+  return 'normal';
+}
+
+function fmtDue(dueDate) {
+  if (!dueDate) return '期限なし';
+  const d = daysUntil(dueDate);
+  if (d < 0)  return `${Math.abs(d)}日超過！`;
+  if (d === 0) return '今日まで！';
+  if (d === 1) return '明日まで！';
+  if (d <= 7)  return `あと${d}日`;
+  const dt = new Date(dueDate);
+  return `${dt.getMonth()+1}/${dt.getDate()}まで`;
+}
+
+function fmtDate(dueDate) {
+  if (!dueDate) return '未設定';
+  const dt = new Date(dueDate);
+  return `${dt.getFullYear()}年${dt.getMonth()+1}月${dt.getDate()}日`;
+}
+
+function fmtDT(iso) {
+  const d = new Date(iso);
+  return `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+
+const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+
+function avHTML(member, size = '') {
+  const cls = 'av' + (size ? ` av-${size}` : '');
+  if (!member) return `<div class="${cls}" style="background:#A0AEC0">?</div>`;
+  const init = member.name.charAt(0);
+  return `<div class="${cls}" style="background:${member.color}">${init}</div>`;
+}
+
+function priLabel(p) {
+  return p === 'high' ? '🔥 急ぎ' : p === 'medium' ? '📌 普通' : '📎 低め';
+}
+
+function ballIcon(p) {
+  return p === 'high' ? '🔴' : p === 'medium' ? '🟡' : '🟢';
+}
+
+// ────────────────────────────────────────
+// FIREBASE SETUP
+// ────────────────────────────────────────
+function initFirebase(config, room) {
+  if (!firebase.apps.length) {
+    firebase.initializeApp(config);
+  }
+  db = firebase.firestore();
+  db.enablePersistence({ synchronizeTabs: true }).catch(() => {});
+  roomCode = room;
+  loading = true;
+  _loadedMembers = false;
+  _loadedBalls   = false;
+  setupListeners();
+  updateConnBadge(null);
+  showConnInfo();
+}
+
+function setupListeners() {
+  const room = db.collection('rooms').doc(roomCode);
+
+  room.collection('members').onSnapshot(snap => {
+    state.members = snap.docs.map(d => d.data());
+    _loadedMembers = true;
+    checkAllLoaded();
+    render();
+  }, err => {
+    console.error('members listener:', err);
+    updateConnBadge(false);
+  });
+
+  room.collection('balls').onSnapshot(snap => {
+    state.balls = snap.docs.map(d => d.data());
+    state.balls.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    _loadedBalls = true;
+    checkAllLoaded();
+    render();
+  }, err => {
+    console.error('balls listener:', err);
+    updateConnBadge(false);
+  });
+}
+
+function checkAllLoaded() {
+  if (_loadedMembers && _loadedBalls && loading) {
+    loading = false;
+    updateConnBadge(true);
+  }
+}
+
+function updateConnBadge(connected) {
+  const badge = document.getElementById('conn-badge');
+  const dot   = document.getElementById('conn-dot');
+  const text  = document.getElementById('conn-text');
+  badge.style.display = 'flex';
+  if (connected === null) {
+    dot.className = 'conn-dot connecting';
+    text.textContent = '接続中...';
+  } else if (connected) {
+    dot.className = 'conn-dot';
+    text.textContent = '接続済み';
+  } else {
+    dot.className = 'conn-dot offline';
+    text.textContent = 'オフライン';
+  }
+}
+
+function showConnInfo() {
+  const rd = document.getElementById('room-display');
+  rd.style.display = 'block';
+  rd.textContent = `ルーム: ${roomCode}  (タップでコピー)`;
+}
+
+// ────────────────────────────────────────
+// SETUP SCREEN
+// ────────────────────────────────────────
+function showSetupScreen() {
+  document.getElementById('setup-screen').classList.remove('hidden');
+}
+
+function hideSetupScreen() {
+  document.getElementById('setup-screen').classList.add('hidden');
+}
+
+function setupGenRoom() {
+  document.getElementById('setup-room').value = generateRoomCode();
+}
+
+function generateRoomCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  return Array.from({ length: 6 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+}
+
+function parseFirebaseConfig(str) {
+  // まず普通のJSONとして試みる
+  try { return JSON.parse(str); } catch(_) {}
+  // Firebase consoleからコピーしたJS形式（キーに"なし）も対応
+  try {
+    const jsonStr = str.replace(/([{,][\s\n\r]*)([a-zA-Z_]\w*)\s*:/g, '$1"$2":');
+    return JSON.parse(jsonStr);
+  } catch(_) {}
+  return null;
+}
+
+function doSetup() {
+  const configStr = document.getElementById('setup-config').value.trim();
+  const room      = document.getElementById('setup-room').value.trim().toUpperCase();
+
+  if (!configStr) { toast('Firebase設定を貼り付けてください'); return; }
+  if (!room)      { toast('ルームコードを入力してください'); return; }
+
+  const config = parseFirebaseConfig(configStr);
+  if (!config) {
+    toast('設定のJSONが正しくありません');
+    return;
+  }
+
+  if (!config.apiKey || !config.projectId) {
+    toast('apiKey と projectId が必要です');
+    return;
+  }
+
+  try {
+    saveSetup(config, room);
+    initFirebase(config, room);
+    hideSetupScreen();
+    render();
+  } catch(e) {
+    console.error(e);
+    toast('Firebase初期化に失敗しました: ' + (e.message || e));
+  }
+}
+
+function useLocalMode() {
+  localMode = true;
+  loading   = false;
+  state     = loadLocalState();
+  hideSetupScreen();
+  initDemo();
+  render();
+}
+
+function copyRoomCode() {
+  if (!roomCode) return;
+  navigator.clipboard.writeText(roomCode)
+    .then(() => toast(`📋 ルームコード「${roomCode}」をコピーしました`))
+    .catch(() => toast(`ルームコード: ${roomCode}`));
+}
+
+// ────────────────────────────────────────
+// FIRESTORE WRAPPERS
+// ────────────────────────────────────────
+function fsSet(col, doc) {
+  if (!db) return Promise.resolve();
+  return db.collection('rooms').doc(roomCode).collection(col).doc(doc.id).set(doc);
+}
+
+function fsDelete(col, id) {
+  if (!db) return Promise.resolve();
+  return db.collection('rooms').doc(roomCode).collection(col).doc(id).delete();
+}
+
+// ────────────────────────────────────────
+// RENDER ENTRY
+// ────────────────────────────────────────
+function render() {
+  if (loading) {
+    document.getElementById('main-content').innerHTML =
+      `<div class="spinner-wrap"><div class="spinner"></div></div>`;
+    return;
+  }
+
+  document.querySelectorAll('.nav-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.tab === curTab);
+  });
+
+  const main = document.getElementById('main-content');
+  if (curBallId) {
+    main.innerHTML = renderDetail(curBallId);
+  } else {
+    switch (curTab) {
+      case 'dashboard': main.innerHTML = renderDashboard(); break;
+      case 'balls':     main.innerHTML = renderBallsList(); break;
+      case 'members':   main.innerHTML = renderMembers();   break;
+      default:          main.innerHTML = renderDashboard();
+    }
+  }
+}
+
+// ────────────────────────────────────────
+// DASHBOARD
+// ────────────────────────────────────────
+function renderDashboard() {
+  if (state.members.length === 0) {
+    return `<div class="empty" style="padding-top:48px">
+      <div class="empty-icon">⚾</div>
+      <div class="empty-title">ようこそ！</div>
+      <div class="empty-text">チームメンバーを登録して<br>ボールを投げ合いましょう！<br><br>責任の所在を一目で把握できます。</div>
+      <button class="btn-main" onclick="showAddMember()" style="max-width:240px">👥 メンバーを追加する</button>
+    </div>`;
+  }
+
+  const active  = activeBalls();
+  const overdue = active.filter(b => { const d=daysUntil(b.dueDate); return d!==null && d<0; });
+  const soon    = active.filter(b => { const d=daysUntil(b.dueDate); return d!==null && d>=0 && d<=2; });
+
+  let h = `<div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-num">${active.length}</div>
+      <div class="stat-lbl">⚾ 総ボール</div>
+    </div>
+    <div class="stat-card ${overdue.length ? 'danger' : ''}">
+      <div class="stat-num ${overdue.length ? 'pulse' : ''}">${overdue.length}</div>
+      <div class="stat-lbl">🔴 期限超過</div>
+    </div>
+    <div class="stat-card ${soon.length ? 'warn' : ''}">
+      <div class="stat-num">${soon.length}</div>
+      <div class="stat-lbl">⚡ 要対応</div>
+    </div>
+  </div>`;
+
+  if (active.length === 0) {
+    h += `<div class="empty" style="padding-top:10px">
+      <div class="empty-icon">🎉</div>
+      <div class="empty-title">ボールなし！</div>
+      <div class="empty-text">今は誰もボールを持っていません。<br>新しいタスクを投げましょう！</div>
+    </div>`;
+    return h;
+  }
+
+  h += `<div class="sec-title">メンバー別ボール</div>`;
+
+  state.members.forEach(m => {
+    const balls = ballsByHolder(m.id);
+    if (!balls.length) return;
+    h += `<div class="player-section">
+      <div class="ps-header">
+        <div class="ps-left">${avHTML(m)}<span class="ps-name">${esc(m.name)}</span></div>
+        <div class="ball-count">${balls.length}</div>
+      </div>
+      ${balls.slice(0,3).map(b => ballCardMini(b)).join('')}
+      ${balls.length > 3 ? `<div style="text-align:center;font-size:12px;color:var(--text-light);margin-top:6px">他 ${balls.length-3} 件</div>` : ''}
+    </div>`;
+  });
+
+  const unassigned = active.filter(b => !getMember(b.currentHolder));
+  if (unassigned.length) {
+    h += `<div class="player-section">
+      <div class="ps-header">
+        <div class="ps-left"><div class="av" style="background:#A0AEC0">?</div><span class="ps-name">未割当</span></div>
+        <div class="ball-count" style="background:#A0AEC0">${unassigned.length}</div>
+      </div>
+      ${unassigned.map(b => ballCardMini(b)).join('')}
+    </div>`;
+  }
+
+  return h;
+}
+
+function ballCardMini(ball) {
+  const urg    = urgency(ball);
+  const holder = getMember(ball.currentHolder);
+  return `<div class="ball-card ${urg}" onclick="viewBall('${ball.id}')">
+    <div class="card-top">
+      <div class="ball-emoji">${ballIcon(ball.priority)}</div>
+      <div class="ball-info">
+        <div class="ball-title">${esc(ball.title)}</div>
+        <div class="badges">
+          <span class="badge ${urg}">${fmtDue(ball.dueDate)}</span>
+          <span class="badge ${ball.priority}">${priLabel(ball.priority)}</span>
+        </div>
+      </div>
+    </div>
+    <div class="card-bottom">
+      <div class="holder-row">${avHTML(holder,'sm')}<span class="holder-name">${holder ? esc(holder.name) : '未割当'}</span></div>
+      <button class="throw-btn" onclick="event.stopPropagation();showThrowModal('${ball.id}')">投げる ➤</button>
+    </div>
+  </div>`;
+}
+
+// ────────────────────────────────────────
+// BALLS LIST
+// ────────────────────────────────────────
+function renderBallsList() {
+  const active = activeBalls();
+  const done   = state.balls.filter(b => b.status === 'done');
+
+  let filtered = curFilter === 'done' ? done
+    : curFilter === 'all' ? active
+    : active.filter(b => b.currentHolder === curFilter);
+
+  const uOrder = { urgent:0, warning:1, normal:2, 'no-date':3, done:4 };
+  filtered = [...filtered].sort((a,b) => (uOrder[urgency(a)]||0) - (uOrder[urgency(b)]||0));
+
+  const tabs = [
+    { key:'all', label:'全て', count: active.length },
+    ...state.members.map(m => ({ key:m.id, label:m.name, count: ballsByHolder(m.id).length, color: m.color })),
+    { key:'done', label:'完了', count: done.length },
+  ];
+
+  let h = `<div class="filter-tabs">`;
+  tabs.forEach(t => {
+    h += `<button class="ftab ${curFilter===t.key?'active':''}" onclick="setFilter('${t.key}')">
+      ${t.color ? `<div class="ftab-dot" style="background:${t.color}"></div>` : ''}
+      ${esc(t.label)}<span class="cnt">${t.count}</span>
+    </button>`;
+  });
+  h += `</div>`;
+
+  if (!filtered.length) {
+    h += `<div class="empty">
+      <div class="empty-icon">${curFilter==='done'?'✅':curFilter==='all'?'🎉':'😊'}</div>
+      <div class="empty-title">${curFilter==='done'?'完了ボールなし':curFilter==='all'?'ボールなし！':`${esc(getMember(curFilter)?.name??'')}さんはボールなし`}</div>
+      <div class="empty-text">${curFilter==='all'?'新しいボールを投げましょう！':'このメンバーはフリーです！'}</div>
+      ${curFilter!=='done'?`<button class="btn-main" onclick="showCreateModal(null,'${curFilter==='all'?'':curFilter}')" style="max-width:200px">⚾ 投げる！</button>`:''}
+    </div>`;
+    return h;
+  }
+
+  filtered.forEach(b => { h += ballCardFull(b); });
+  return h;
+}
+
+function ballCardFull(ball) {
+  const urg    = urgency(ball);
+  const holder = getMember(ball.currentHolder);
+  const isDone = ball.status === 'done';
+  return `<div class="ball-card ${urg} ${isDone?'done-card':''}" onclick="viewBall('${ball.id}')">
+    <div class="card-top">
+      <div class="ball-emoji">${isDone ? '✅' : ballIcon(ball.priority)}</div>
+      <div class="ball-info">
+        <div class="ball-title" style="${isDone?'text-decoration:line-through':''}">${esc(ball.title)}</div>
+        ${ball.description ? `<div class="ball-desc">${esc(ball.description)}</div>` : ''}
+        <div class="badges">
+          <span class="badge ${urg}">${fmtDue(ball.dueDate)}</span>
+          <span class="badge ${ball.priority}">${priLabel(ball.priority)}</span>
+        </div>
+      </div>
+    </div>
+    <div class="card-bottom">
+      <div class="holder-row">${avHTML(holder,'sm')}<span class="holder-name">${holder?esc(holder.name):'未割当'}</span></div>
+      ${isDone
+        ? `<span style="font-size:12px;color:var(--success);font-weight:800">完了 ✓</span>`
+        : `<button class="throw-btn" onclick="event.stopPropagation();showThrowModal('${ball.id}')">投げる ➤</button>`}
+    </div>
+  </div>`;
+}
+
+// ────────────────────────────────────────
+// BALL DETAIL
+// ────────────────────────────────────────
+function renderDetail(ballId) {
+  const ball = getBall(ballId);
+  if (!ball) { curBallId = null; return renderDashboard(); }
+
+  const holder = getMember(ball.currentHolder);
+  const urg    = urgency(ball);
+  const isDone = ball.status === 'done';
+  const heroCls = isDone ? 'done' : urg === 'urgent' ? 'urg' : '';
+
+  let h = `<div class="detail-hero ${heroCls}">
+    <button class="back-btn" onclick="goBack()">← 戻る</button>
+    <div class="detail-title">${esc(ball.title)}</div>
+    <div class="hero-badges">
+      <span class="hero-badge">${isDone ? '✅ 完了' : '⚾ 進行中'}</span>
+      <span class="hero-badge">${fmtDue(ball.dueDate)}</span>
+      <span class="hero-badge">${priLabel(ball.priority)}</span>
+    </div>
+  </div>`;
+
+  h += `<div class="info-card">`;
+  if (ball.description) {
+    h += `<div class="info-row"><span class="info-key">説明</span><span class="info-val muted">${esc(ball.description)}</span></div>`;
+  }
+  h += `
+    <div class="info-row">
+      <span class="info-key">担当者</span>
+      <span class="info-val">${avHTML(holder,'sm')} ${holder ? esc(holder.name) : '未割当'}</span>
+    </div>
+    <div class="info-row">
+      <span class="info-key">期限</span>
+      <span class="info-val">${fmtDate(ball.dueDate)}</span>
+    </div>
+    <div class="info-row">
+      <span class="info-key">作成日</span>
+      <span class="info-val">${fmtDT(ball.createdAt)}</span>
+    </div>
+    <div class="info-row">
+      <span class="info-key">パス回数</span>
+      <span class="info-val">${ball.history.filter(h=>h.type==='throw').length} 回</span>
+    </div>
+  </div>`;
+
+  if (!isDone) {
+    h += `<button class="btn-main" onclick="showThrowModal('${ball.id}')">➤ 別のメンバーに投げる</button>
+      <button class="btn-main green" onclick="completeBall('${ball.id}')">✅ このボールを完了する</button>`;
+  } else {
+    h += `<button class="btn-sub" onclick="reopenBall('${ball.id}')">🔄 再オープンする</button>`;
+  }
+  h += `<button class="btn-sub danger" onclick="confirmDelete('${ball.id}')">🗑 削除する</button>`;
+
+  h += `<div class="sec-title">パス履歴</div><div class="timeline">`;
+  const hist = [...ball.history].reverse();
+  hist.forEach(ev => {
+    const from = getMember(ev.from);
+    const to   = getMember(ev.to);
+    let action = '';
+    let dotCls = '';
+    if (ev.type === 'create') {
+      action = `🆕 <strong>${to ? esc(to.name) : '?'}</strong> が受け取り`;
+      dotCls = 'create-dot';
+    } else if (ev.type === 'throw') {
+      action = `➤ <strong>${from ? esc(from.name) : '?'}</strong> → <strong>${to ? esc(to.name) : '?'}</strong>`;
+    } else if (ev.type === 'done') {
+      action = `✅ <strong>${from ? esc(from.name) : '?'}</strong> が完了！`;
+      dotCls = 'done-dot';
+    } else if (ev.type === 'reopen') {
+      action = `🔄 再オープン`;
+    }
+    h += `<div class="tl-item">
+      <div class="tl-dot ${dotCls}"></div>
+      <div class="tl-body">
+        <div class="tl-head"><span class="tl-action">${action}</span><span class="tl-time">${fmtDT(ev.timestamp)}</span></div>
+        ${ev.note ? `<div class="tl-note">💬 "${esc(ev.note)}"</div>` : ''}
+      </div>
+    </div>`;
+  });
+  h += `</div>`;
+
+  return h;
+}
+
+// ────────────────────────────────────────
+// MEMBERS SCREEN
+// ────────────────────────────────────────
+function renderMembers() {
+  let h = `<button class="btn-main" onclick="showAddMember()" style="margin-bottom:14px">＋ メンバーを追加</button>`;
+
+  if (!state.members.length) {
+    h += `<div class="empty">
+      <div class="empty-icon">👥</div>
+      <div class="empty-title">メンバーなし</div>
+      <div class="empty-text">チームメンバーを追加して<br>タスクを割り当てましょう！</div>
+    </div>`;
+    return h;
+  }
+
+  state.members.forEach(m => {
+    const cnt  = ballsByHolder(m.id).length;
+    const done = state.balls.filter(b => b.status==='done' && b.history.some(hh=>hh.to===m.id || hh.from===m.id)).length;
+    h += `<div class="member-card">
+      ${avHTML(m, 'lg')}
+      <div class="mc-info">
+        <div class="mc-name">${esc(m.name)}</div>
+        <div class="mc-stat">保持中: ${cnt}個 ／ 関連完了: ${done}個</div>
+      </div>
+      <div class="mc-actions">
+        <button class="icon-btn" onclick="showAddMember('${m.id}')">✏️</button>
+        <button class="icon-btn del" onclick="confirmDeleteMember('${m.id}')">🗑</button>
+      </div>
+    </div>`;
+  });
+
+  return h;
+}
+
+// ────────────────────────────────────────
+// MODALS
+// ────────────────────────────────────────
+function showModal(inner) {
+  document.getElementById('modal-content').innerHTML = `<div class="modal-handle"></div>${inner}`;
+  document.getElementById('modal-overlay').classList.remove('hidden');
+}
+function hideModal() { document.getElementById('modal-overlay').classList.add('hidden'); }
+
+// ── CREATE BALL ──
+function showCreateModal(defaultHolderId = null, preHolder = null) {
+  const holderId = preHolder || defaultHolderId || '';
+
+  const memberOpts = state.members.map(m =>
+    `<button class="p-opt ${holderId===m.id?'sel':''}" onclick="selPlayer(this,'${m.id}')" data-pid="${m.id}">
+      ${avHTML(m)} <span class="p-opt-name">${esc(m.name)}</span>
+    </button>`).join('');
+
+  showModal(`
+    <div class="modal-title">⚾ ボールを投げる</div>
+    <div class="fgroup">
+      <label class="flabel">タスク名 *</label>
+      <input class="finput" id="f-title" type="text" placeholder="例: 企画書のレビュー" maxlength="100" autocomplete="off">
+    </div>
+    <div class="fgroup">
+      <label class="flabel">詳細（任意）</label>
+      <textarea class="finput" id="f-desc" placeholder="補足があれば..."></textarea>
+    </div>
+    <div class="fgroup">
+      <label class="flabel">投げる相手 *</label>
+      ${state.members.length
+        ? `<div class="player-selector" id="ps">${memberOpts}</div><input type="hidden" id="f-holder" value="${holderId}">`
+        : `<p style="color:var(--text-light);font-size:13px">先にメンバーを追加してください</p>`}
+    </div>
+    <div class="fgroup">
+      <label class="flabel">期限（任意）</label>
+      <input class="finput" id="f-due" type="date" min="${new Date().toISOString().split('T')[0]}">
+    </div>
+    <div class="fgroup">
+      <label class="flabel">優先度</label>
+      <div class="pri-row">
+        <button class="pri-opt low"        data-p="low"    onclick="selPri(this)">📎 低め</button>
+        <button class="pri-opt medium sel" data-p="medium" onclick="selPri(this)">📌 普通</button>
+        <button class="pri-opt high"       data-p="high"   onclick="selPri(this)">🔥 急ぎ</button>
+      </div>
+      <input type="hidden" id="f-pri" value="medium">
+    </div>
+    <div class="fgroup">
+      <label class="flabel">ひとこと（任意）</label>
+      <input class="finput" id="f-note" type="text" placeholder="「急ぎです！」など" maxlength="100" autocomplete="off">
+    </div>
+    <button class="btn-main" onclick="doCreateBall()">➤ えいっ！投げる！</button>
+    <button class="btn-sub" onclick="hideModal()">キャンセル</button>
+  `);
+
+  setTimeout(() => document.getElementById('f-title')?.focus(), 120);
+}
+
+// ── THROW (REASSIGN) BALL ──
+function showThrowModal(ballId) {
+  const ball = getBall(ballId);
+  if (!ball) return;
+
+  const opts = state.members.map(m =>
+    `<button class="p-opt ${ball.currentHolder===m.id?'sel':''}" onclick="selPlayer(this,'${m.id}')" data-pid="${m.id}">
+      ${avHTML(m)}
+      <span class="p-opt-name">${esc(m.name)}${ball.currentHolder===m.id?' (今)':''}</span>
+    </button>`).join('');
+
+  showModal(`
+    <div class="modal-title">➤ ボールを投げる</div>
+    <div style="font-size:14px;font-weight:700;color:var(--text-light);margin-bottom:16px">📌 "${esc(ball.title)}"</div>
+    <div class="fgroup">
+      <label class="flabel">投げる相手 *</label>
+      <div class="player-selector" id="ps">${opts}</div>
+      <input type="hidden" id="f-throwto" value="${ball.currentHolder}">
+    </div>
+    <div class="fgroup">
+      <label class="flabel">コメント（任意）</label>
+      <input class="finput" id="f-note" type="text" placeholder="「確認お願いします！」など" maxlength="100" autocomplete="off">
+    </div>
+    <button class="btn-main" onclick="doThrowBall('${ballId}')">➤ えいっ！投げる！</button>
+    <button class="btn-sub" onclick="hideModal()">キャンセル</button>
+  `);
+}
+
+// ── ADD/EDIT MEMBER ──
+function showAddMember(editId = null) {
+  const m = editId ? getMember(editId) : null;
+  const initColor = m?.color || COLORS[0];
+
+  const swatches = COLORS.map(c =>
+    `<div class="cswatch ${initColor===c?'sel':''}" style="background:${c}" onclick="selColor(this,'${c}')" data-c="${c}"></div>`
+  ).join('');
+
+  showModal(`
+    <div class="modal-title">${m ? 'メンバー編集' : '👤 メンバーを追加'}</div>
+    <div class="fgroup">
+      <label class="flabel">名前 *</label>
+      <input class="finput" id="f-mname" type="text" placeholder="例: 田中さん" maxlength="20" value="${m ? esc(m.name) : ''}" autocomplete="off">
+    </div>
+    <div class="fgroup">
+      <label class="flabel">カラー</label>
+      <div class="color-row" id="cp">${swatches}</div>
+      <input type="hidden" id="f-mcolor" value="${initColor}">
+    </div>
+    <button class="btn-main" onclick="${m ? `doEditMember('${editId}')` : 'doAddMember()'}">
+      ${m ? '💾 保存' : '＋ 追加する'}
+    </button>
+    <button class="btn-sub" onclick="hideModal()">キャンセル</button>
+  `);
+
+  setTimeout(() => document.getElementById('f-mname')?.focus(), 120);
+}
+
+// ── CONFIRM MODALS ──
+function confirmDelete(ballId) {
+  const ball = getBall(ballId);
+  if (!ball) return;
+  showModal(`
+    <div class="modal-title">🗑 ボールを削除</div>
+    <div style="color:var(--text-light);margin-bottom:20px;font-size:14px;line-height:1.6">
+      「${esc(ball.title)}」を削除しますか？<br>この操作は元に戻せません。
+    </div>
+    <button class="btn-main red" onclick="doDeleteBall('${ballId}')">🗑 削除する</button>
+    <button class="btn-sub" onclick="hideModal()">キャンセル</button>
+  `);
+}
+
+function confirmDeleteMember(memberId) {
+  const m = getMember(memberId);
+  if (!m) return;
+  const cnt = ballsByHolder(memberId).length;
+  showModal(`
+    <div class="modal-title">🗑 メンバーを削除</div>
+    <div style="color:var(--text-light);margin-bottom:20px;font-size:14px;line-height:1.6">
+      「${esc(m.name)}」を削除しますか？<br>
+      ${cnt ? `<strong style="color:var(--danger)">このメンバーが持つ${cnt}個のボールが未割当になります。</strong>` : ''}
+    </div>
+    <button class="btn-main red" onclick="doDeleteMember('${memberId}')">🗑 削除する</button>
+    <button class="btn-sub" onclick="hideModal()">キャンセル</button>
+  `);
+}
+
+// ────────────────────────────────────────
+// FORM HELPERS (called inline)
+// ────────────────────────────────────────
+function selPlayer(el, pid) {
+  document.querySelectorAll('.p-opt').forEach(o => o.classList.remove('sel'));
+  el.classList.add('sel');
+  const inp = document.getElementById('f-throwto') || document.getElementById('f-holder');
+  if (inp) inp.value = pid;
+}
+function selPri(el) {
+  document.querySelectorAll('.pri-opt').forEach(o => o.classList.remove('sel'));
+  el.classList.add('sel');
+  document.getElementById('f-pri').value = el.dataset.p;
+}
+function selColor(el, c) {
+  document.querySelectorAll('.cswatch').forEach(s => s.classList.remove('sel'));
+  el.classList.add('sel');
+  document.getElementById('f-mcolor').value = c;
+}
+
+// ────────────────────────────────────────
+// ACTIONS
+// ────────────────────────────────────────
+function doCreateBall() {
+  const title  = document.getElementById('f-title')?.value.trim();
+  const desc   = document.getElementById('f-desc')?.value.trim();
+  const holder = document.getElementById('f-holder')?.value;
+  const due    = document.getElementById('f-due')?.value;
+  const pri    = document.getElementById('f-pri')?.value || 'medium';
+  const note   = document.getElementById('f-note')?.value.trim();
+
+  if (!title)  { toast('タスク名を入力してください'); document.getElementById('f-title')?.focus(); return; }
+  if (!holder) { toast('投げる相手を選んでください'); return; }
+
+  const now  = new Date().toISOString();
+  const ball = {
+    id: uid(), title, description: desc||'',
+    currentHolder: holder, dueDate: due||null, priority: pri,
+    status: 'active', createdAt: now,
+    history: [{ id:uid(), from:null, to:holder, timestamp:now, note:note||'', type:'create' }]
+  };
+
+  if (localMode) {
+    state.balls.unshift(ball);
+    saveState();
+  } else {
+    fsSet('balls', ball);
+  }
+
+  hideModal();
+  const m = getMember(holder);
+  playThrow(() => {
+    toast(`⚾ ${m?esc(m.name):'誰か'}にボールを投げました！`);
+    if (localMode) render();
+  });
+}
+
+function doThrowBall(ballId) {
+  const newHolder = document.getElementById('f-throwto')?.value;
+  const note      = document.getElementById('f-note')?.value.trim();
+  const ball      = getBall(ballId);
+  if (!ball) return;
+  if (!newHolder) { toast('投げる相手を選んでください'); return; }
+
+  const updatedBall = {
+    ...ball,
+    currentHolder: newHolder,
+    history: [...ball.history, { id:uid(), from:ball.currentHolder, to:newHolder, timestamp:new Date().toISOString(), note:note||'', type:'throw' }]
+  };
+
+  if (localMode) {
+    const idx = state.balls.findIndex(b => b.id === ballId);
+    if (idx !== -1) state.balls[idx] = updatedBall;
+    saveState();
+  } else {
+    fsSet('balls', updatedBall);
+  }
+
+  hideModal();
+  const m = getMember(newHolder);
+  playThrow(() => {
+    toast(`➤ ${m?esc(m.name):'誰か'}にパスしました！`);
+    if (localMode) render();
+  });
+}
+
+function completeBall(ballId) {
+  const ball = getBall(ballId);
+  if (!ball) return;
+
+  const updatedBall = {
+    ...ball,
+    status: 'done',
+    history: [...ball.history, { id:uid(), from:ball.currentHolder, to:ball.currentHolder, timestamp:new Date().toISOString(), note:'', type:'done' }]
+  };
+
+  if (localMode) {
+    const idx = state.balls.findIndex(b => b.id === ballId);
+    if (idx !== -1) state.balls[idx] = updatedBall;
+    saveState();
+  } else {
+    fsSet('balls', updatedBall);
+  }
+
+  const overlay = document.createElement('div');
+  overlay.className = 'done-overlay';
+  overlay.innerHTML = `<div class="done-icon">🎉</div><div class="done-text">完了！</div><div class="done-sub">お疲れさまでした！</div>`;
+  document.body.appendChild(overlay);
+
+  setTimeout(() => {
+    overlay.remove();
+    curBallId = null;
+    curTab    = 'dashboard';
+    toast('✅ ボールを完了しました！');
+    render();
+  }, 1900);
+}
+
+function reopenBall(ballId) {
+  const ball = getBall(ballId);
+  if (!ball) return;
+
+  const updatedBall = {
+    ...ball,
+    status: 'active',
+    history: [...ball.history, { id:uid(), from:null, to:ball.currentHolder, timestamp:new Date().toISOString(), note:'', type:'reopen' }]
+  };
+
+  if (localMode) {
+    const idx = state.balls.findIndex(b => b.id === ballId);
+    if (idx !== -1) state.balls[idx] = updatedBall;
+    saveState();
+    render();
+  } else {
+    fsSet('balls', updatedBall);
+  }
+
+  toast('🔄 再オープンしました');
+}
+
+function doDeleteBall(ballId) {
+  curBallId = null;
+  curTab    = 'dashboard';
+
+  if (localMode) {
+    state.balls = state.balls.filter(b => b.id !== ballId);
+    saveState();
+    render();
+  } else {
+    fsDelete('balls', ballId);
+  }
+
+  hideModal();
+  toast('🗑 削除しました');
+}
+
+function doAddMember() {
+  const name  = document.getElementById('f-mname')?.value.trim();
+  const color = document.getElementById('f-mcolor')?.value || COLORS[0];
+  if (!name) { toast('名前を入力してください'); document.getElementById('f-mname')?.focus(); return; }
+
+  const member = { id: uid(), name, color };
+
+  if (localMode) {
+    state.members.push(member);
+    saveState();
+    render();
+  } else {
+    fsSet('members', member);
+  }
+
+  hideModal();
+  toast(`👤 ${name} を追加しました！`);
+}
+
+function doEditMember(memberId) {
+  const name  = document.getElementById('f-mname')?.value.trim();
+  const color = document.getElementById('f-mcolor')?.value;
+  if (!name) { toast('名前を入力してください'); return; }
+
+  const m = getMember(memberId);
+  if (!m) return;
+
+  const updatedMember = { ...m, name, color: color || m.color };
+
+  if (localMode) {
+    const idx = state.members.findIndex(mem => mem.id === memberId);
+    if (idx !== -1) state.members[idx] = updatedMember;
+    saveState();
+    render();
+  } else {
+    fsSet('members', updatedMember);
+  }
+
+  hideModal();
+  toast('💾 保存しました');
+}
+
+function doDeleteMember(memberId) {
+  if (localMode) {
+    state.members = state.members.filter(m => m.id !== memberId);
+    saveState();
+    render();
+  } else {
+    fsDelete('members', memberId);
+  }
+
+  hideModal();
+  toast('🗑 メンバーを削除しました');
+}
+
+// ────────────────────────────────────────
+// NAVIGATION
+// ────────────────────────────────────────
+function setTab(tab) { curTab = tab; curBallId = null; if (tab==='balls') curFilter='all'; render(); }
+function setFilter(f) { curFilter = f; render(); }
+function viewBall(id) { curBallId = id; render(); window.scrollTo(0,0); }
+function goBack() { curBallId = null; render(); }
+
+// ────────────────────────────────────────
+// ANIMATIONS & FEEDBACK
+// ────────────────────────────────────────
+function playThrow(cb) {
+  const el = document.getElementById('throw-anim');
+  el.classList.remove('hidden');
+  setTimeout(() => { el.classList.add('hidden'); cb && cb(); }, 750);
+}
+
+let _toastTimer;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => el.classList.remove('show'), 2600);
+}
+
+// ────────────────────────────────────────
+// EVENT LISTENERS
+// ────────────────────────────────────────
+document.getElementById('btn-new').addEventListener('click', () => {
+  if (loading) return;
+  if (!state.members.length) {
+    toast('先にメンバーを追加してください');
+    setTab('members');
+    setTimeout(() => showAddMember(), 80);
+    return;
+  }
+  showCreateModal();
+});
+
+document.querySelectorAll('.nav-item').forEach(el => {
+  el.addEventListener('click', () => {
+    if (loading) return;
+    setTab(el.dataset.tab);
+  });
+});
+
+document.getElementById('modal-overlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('modal-overlay')) hideModal();
+});
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') hideModal(); });
+
+// ────────────────────────────────────────
+// DEMO DATA (local mode only)
+// ────────────────────────────────────────
+function initDemo() {
+  if (state.members.length || state.balls.length) return;
+
+  const m1 = { id:uid(), name:'田中さん',  color:'#3B82F6' };
+  const m2 = { id:uid(), name:'鈴木さん',  color:'#EF4444' };
+  const m3 = { id:uid(), name:'佐藤さん',  color:'#10B981' };
+  state.members = [m1, m2, m3];
+
+  const now = new Date();
+  const d = n => { const x=new Date(now); x.setDate(x.getDate()+n); return x.toISOString().split('T')[0]; };
+  const ts = n => new Date(now.getTime() - n*3600000).toISOString();
+
+  state.balls = [
+    {
+      id:uid(), title:'企画書のレビュー依頼', description:'3月末締切の新規プロジェクト企画書です。ご確認お願いします。',
+      currentHolder:m1.id, dueDate:d(1), priority:'high', status:'active', createdAt:ts(26),
+      history:[
+        { id:uid(), from:m2.id, to:m1.id, timestamp:ts(26), note:'急ぎでお願いします！', type:'create' }
+      ]
+    },
+    {
+      id:uid(), title:'ロゴデザインの修正', description:'フォントをもう少し太くしてほしいです。',
+      currentHolder:m3.id, dueDate:d(6), priority:'medium', status:'active', createdAt:ts(50),
+      history:[
+        { id:uid(), from:null,  to:m2.id, timestamp:ts(50), note:'',                     type:'create' },
+        { id:uid(), from:m2.id, to:m3.id, timestamp:ts(24), note:'デザイナーさんお願いします', type:'throw'  }
+      ]
+    },
+    {
+      id:uid(), title:'契約書の最終確認', description:'',
+      currentHolder:m2.id, dueDate:d(-1), priority:'high', status:'active', createdAt:ts(74),
+      history:[
+        { id:uid(), from:m3.id, to:m2.id, timestamp:ts(74), note:'法務確認お願いします', type:'create' }
+      ]
+    },
+    {
+      id:uid(), title:'MTG議事録の共有', description:'',
+      currentHolder:m1.id, dueDate:d(14), priority:'low', status:'active', createdAt:ts(12),
+      history:[
+        { id:uid(), from:m3.id, to:m1.id, timestamp:ts(12), note:'', type:'create' }
+      ]
+    }
+  ];
+
+  saveState();
+}
+
+// ────────────────────────────────────────
+// STARTUP
+// ────────────────────────────────────────
+(function init() {
+  const setup = loadSetup();
+  if (setup && setup.config && setup.roomCode) {
+    try {
+      initFirebase(setup.config, setup.roomCode);
+      hideSetupScreen();
+      render(); // shows spinner while listeners load
+    } catch(e) {
+      console.error('Firebase init failed:', e);
+      showSetupScreen();
+    }
+  }
+  // else: setup screen stays visible (default)
+})();
+</script>
+</body>
+</html>
