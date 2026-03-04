@@ -750,6 +750,44 @@
       font-family: 'SF Mono', 'Consolas', monospace;
     }
 
+    /* ── QR CARD ── */
+    .qr-card {
+      background: white;
+      border-radius: var(--r);
+      padding: 16px 14px 14px;
+      margin-bottom: 10px;
+      box-shadow: var(--shadow);
+      text-align: center;
+    }
+    .qr-card-title {
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--text-light);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 12px;
+    }
+    .qr-wrap {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 10px;
+    }
+    .qr-wrap img, .qr-wrap canvas {
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+    .qr-room-code {
+      font-size: 13px;
+      color: var(--text-light);
+      margin-bottom: 10px;
+    }
+    .qr-room-code strong {
+      color: var(--text);
+      letter-spacing: 3px;
+      font-size: 17px;
+      font-weight: 900;
+    }
+
     /* ── SHARE BOX ── */
     .share-box {
       background: #EFF6FF;
@@ -880,6 +918,8 @@
 <!-- Firebase SDK (Compat) -->
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<!-- QR Code -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
 <script>
 'use strict';
@@ -1002,6 +1042,37 @@ function fmtDT(iso) {
 }
 
 const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+
+function getRoomInviteUrl() {
+  if (localMode || !roomCode) return null;
+  return window.location.origin + window.location.pathname + '?room=' + encodeURIComponent(roomCode);
+}
+
+function renderQRCard() {
+  if (localMode || !roomCode) return '';
+  return `<div class="qr-card">
+    <div class="qr-card-title">📱 このルームに招待</div>
+    <div class="qr-wrap" id="qr-code-wrap"></div>
+    <div class="qr-room-code">ルームコード: <strong>${esc(roomCode)}</strong></div>
+    <button class="share-copy-btn" style="width:100%" onclick="copyRoomInviteUrl()">🔗 招待URLをコピー</button>
+  </div>`;
+}
+
+function renderQR() {
+  const wrap = document.getElementById('qr-code-wrap');
+  if (!wrap || !roomCode || typeof QRCode === 'undefined') return;
+  wrap.innerHTML = '';
+  const url = getRoomInviteUrl();
+  new QRCode(wrap, { text: url, width: 140, height: 140, colorDark: '#1A202C', colorLight: '#ffffff' });
+}
+
+function copyRoomInviteUrl() {
+  const url = getRoomInviteUrl();
+  if (!url) return;
+  navigator.clipboard.writeText(url)
+    .then(() => toast('🔗 招待URLをコピーしました！'))
+    .catch(() => toast('🔗 ' + url));
+}
 
 function generateShareUrl(ballId) {
   if (localMode || !roomCode) return null;
@@ -1207,10 +1278,10 @@ function render() {
     main.innerHTML = renderDetail(curBallId);
   } else {
     switch (curTab) {
-      case 'dashboard': main.innerHTML = renderDashboard(); break;
+      case 'dashboard': main.innerHTML = renderDashboard(); setTimeout(renderQR, 0); break;
       case 'balls':     main.innerHTML = renderBallsList(); break;
       case 'members':   main.innerHTML = renderMembers();   break;
-      default:          main.innerHTML = renderDashboard();
+      default:          main.innerHTML = renderDashboard(); setTimeout(renderQR, 0);
     }
   }
 }
@@ -1220,7 +1291,7 @@ function render() {
 // ────────────────────────────────────────
 function renderDashboard() {
   if (state.members.length === 0) {
-    return `<div class="empty" style="padding-top:48px">
+    return h + `<div class="empty" style="padding-top:48px">
       <div class="empty-icon">⚾</div>
       <div class="empty-title">ようこそ！</div>
       <div class="empty-text">チームメンバーを登録して<br>ボールを投げ合いましょう！<br><br>責任の所在を一目で把握できます。</div>
@@ -1232,7 +1303,9 @@ function renderDashboard() {
   const overdue = active.filter(b => { const d=daysUntil(b.dueDate); return d!==null && d<0; });
   const soon    = active.filter(b => { const d=daysUntil(b.dueDate); return d!==null && d>=0 && d<=2; });
 
-  let h = `<div class="stats-grid">
+  let h = renderQRCard();
+
+  h += `<div class="stats-grid">
     <div class="stat-card">
       <div class="stat-num">${active.length}</div>
       <div class="stat-lbl">⚾ 総ボール</div>
