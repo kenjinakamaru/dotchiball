@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="theme-color" content="#FF6B35">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <title>どっちボール!?</title>
+  <title>どっち!?ボール</title>
   <style>
     :root {
       --primary: #FF6B35;
@@ -846,7 +846,7 @@
   <header id="app-header">
     <div class="header-row">
       <div>
-        <div class="logo">⚾ どっちボール!?</div>
+        <div class="logo">🏐 どっち!?ボール</div>
         <span class="logo-sub">ボールは今、誰にある？</span>
         <div id="conn-badge">
           <div class="conn-dot connecting" id="conn-dot"></div>
@@ -868,7 +868,7 @@
       <span class="nav-label">ホーム</span>
     </button>
     <button class="nav-item" data-tab="balls">
-      <span class="nav-icon">⚾</span>
+      <span class="nav-icon">🏐</span>
       <span class="nav-label">ボール一覧</span>
     </button>
     <button class="nav-item" data-tab="members">
@@ -882,7 +882,7 @@
 <!-- SETUP SCREEN -->
 <div id="setup-screen">
   <div class="setup-inner">
-    <div class="setup-logo">⚾ どっちボール!?</div>
+    <div class="setup-logo">🏐 どっち!?ボール</div>
     <div class="setup-tagline">チームでリアルタイム共有</div>
 
     <div class="setup-step">
@@ -896,7 +896,7 @@
       </div>
     </div>
 
-    <button class="btn-main" onclick="doSetup()">⚾ はじめる！</button>
+    <button class="btn-main" onclick="doSetup()">🏐 はじめる！</button>
     <div class="setup-divider">─ または ─</div>
     <button class="btn-sub" onclick="useLocalMode()">ローカルモードで使う（共有なし）</button>
   </div>
@@ -909,7 +909,7 @@
 
 <!-- THROW ANIMATION -->
 <div id="throw-anim" class="hidden">
-  <div class="ball-fly">⚾</div>
+  <div class="ball-fly">🏐</div>
 </div>
 
 <!-- TOAST -->
@@ -1314,7 +1314,7 @@ function render() {
 function renderDashboard() {
   if (state.members.length === 0) {
     return `<div class="empty" style="padding-top:48px">
-      <div class="empty-icon">⚾</div>
+      <div class="empty-icon">🏐</div>
       <div class="empty-title">ようこそ！</div>
       <div class="empty-text">チームメンバーを登録して<br>ボールを投げ合いましょう！<br><br>責任の所在を一目で把握できます。</div>
       <button class="btn-main" onclick="showAddMember()" style="max-width:240px">👥 メンバーを追加する</button>
@@ -1328,7 +1328,7 @@ function renderDashboard() {
   let h = `<div class="stats-grid">
     <div class="stat-card">
       <div class="stat-num">${active.length}</div>
-      <div class="stat-lbl">⚾ 総ボール</div>
+      <div class="stat-lbl">🏐 総ボール</div>
     </div>
     <div class="stat-card ${overdue.length ? 'danger' : ''}">
       <div class="stat-num ${overdue.length ? 'pulse' : ''}">${overdue.length}</div>
@@ -1438,7 +1438,7 @@ function renderBallsList() {
       <div class="empty-icon">${curFilter==='done'?'✅':curFilter==='all'?'🎉':'😊'}</div>
       <div class="empty-title">${curFilter==='done'?'完了ボールなし':curFilter==='all'?'ボールなし！':`${esc(getMember(curFilter)?.name??'')}さんはボールなし`}</div>
       <div class="empty-text">${curFilter==='all'?'新しいボールを投げましょう！':'このメンバーはフリーです！'}</div>
-      ${curFilter!=='done'?`<button class="btn-main" onclick="showCreateModal(null,'${curFilter==='all'?'':curFilter}')" style="max-width:200px">⚾ 投げる！</button>`:''}
+      ${curFilter!=='done'?`<button class="btn-main" onclick="showCreateModal(null,'${curFilter==='all'?'':curFilter}')" style="max-width:200px">🏐 投げる！</button>`:''}
     </div>`;
     return h;
   }
@@ -1488,7 +1488,7 @@ function renderDetail(ballId) {
     <button class="back-btn" onclick="goBack()">← 戻る</button>
     <div class="detail-title">${esc(ball.title)}</div>
     <div class="hero-badges">
-      <span class="hero-badge">${isDone ? '✅ 完了' : '⚾ 進行中'}</span>
+      <span class="hero-badge">${isDone ? '✅ 完了' : '🏐 進行中'}</span>
       <span class="hero-badge">${fmtDue(ball.dueDate)}</span>
       <span class="hero-badge">${priLabel(ball.priority)}</span>
     </div>
@@ -1620,7 +1620,7 @@ function showCreateModal(defaultHolderId = null, preHolder = null) {
     </button>`).join('');
 
   showModal(`
-    <div class="modal-title">⚾ ボールを投げる</div>
+    <div class="modal-title">🏐 ボールを投げる</div>
     <div class="fgroup">
       <label class="flabel">タスク名 *</label>
       <input class="finput" id="f-title" type="text" placeholder="例: 企画書のレビュー" maxlength="100" autocomplete="off">
@@ -1802,7 +1802,7 @@ function doCreateBall() {
   const m = getMember(holder);
   sendEmailNotification(ball, m, note);
   playThrow(() => {
-    toast(`⚾ ${m?esc(m.name):'誰か'}にボールを投げました！`);
+    toast(`🏐 ${m?esc(m.name):'誰か'}にボールを投げました！`);
     if (localMode) render();
   });
 }
