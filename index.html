@@ -1723,6 +1723,12 @@ function renderDetail(ballId) {
   </div>`;
 
   h += `<div class="info-card">`;
+  const ballProject = getProject(ball.projectId);
+  h += `<div class="info-row"><span class="info-key">プロジェクト</span><span class="info-val">${
+    ballProject
+      ? `<span style="display:inline-flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:50%;background:${ballProject.color};flex-shrink:0"></span>${esc(ballProject.name)}</span>`
+      : '<span style="color:var(--text-light);font-weight:400;font-size:13px">未設定</span>'
+  }</span></div>`;
   if (ball.description) {
     h += `<div class="info-row"><span class="info-key">説明</span><span class="info-val muted">${esc(ball.description)}</span></div>`;
   }
