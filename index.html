@@ -518,6 +518,8 @@
     .tl-action { font-size: 12px; font-weight: 700; flex: 1; }
     .tl-time { font-size: 10px; color: var(--text-light); white-space: nowrap; }
     .tl-note { font-size: 12px; color: var(--text-light); margin-top: 3px; }
+    .tl-note a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    .tl-note a:hover { text-decoration: underline; }
 
     /* ── MEMBER CARD ── */
     .member-card {
@@ -1131,6 +1133,16 @@ function fmtDT(iso) {
 }
 
 const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+const linkify = s => {
+  const parts = String(s||'').split(/(https?:\/\/[^\s]+)/g);
+  return parts.map((p, i) => {
+    if (i % 2 === 1) {
+      const short = p.length > 30 ? p.slice(0, 27) + '…' : p;
+      return `<a href="${esc(p)}" target="_blank" rel="noopener">${esc(short)}</a>`;
+    }
+    return esc(p);
+  }).join('');
+};
 
 function getRoomInviteUrl() {
   if (localMode || !roomCode) return null;
@@ -1792,7 +1804,7 @@ function renderDetail(ballId) {
       <div class="tl-dot ${dotCls}"></div>
       <div class="tl-body">
         <div class="tl-head"><span class="tl-action">${action}</span><span class="tl-time">${fmtDT(ev.timestamp)}</span></div>
-        ${ev.note ? `<div class="tl-note">💬 "${esc(ev.note)}"</div>` : ''}
+        ${ev.note ? `<div class="tl-note">💬 "${linkify(ev.note)}"</div>` : ''}
       </div>
     </div>`;
   });
