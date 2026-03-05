@@ -1325,7 +1325,9 @@ function renderDashboard() {
   const overdue = active.filter(b => { const m=minutesUntil(b.dueDate); return m!==null && m<0; });
   const soon    = active.filter(b => { const m=minutesUntil(b.dueDate); return m!==null && m>=0 && m<=2880; });
 
-  let h = `<div class="stats-grid">
+  let h = `<div style="position:relative">
+    <button onclick="showStatsHelp()" style="position:absolute;top:-2px;right:0;width:20px;height:20px;border-radius:50%;border:1.5px solid var(--text-light);background:none;color:var(--text-light);font-size:11px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;line-height:1;padding:0">?</button>
+  <div class="stats-grid">
     <div class="stat-card">
       <div class="stat-num">${active.length}</div>
       <div class="stat-lbl">🏐 総ボール</div>
@@ -1338,7 +1340,7 @@ function renderDashboard() {
       <div class="stat-num">${soon.length}</div>
       <div class="stat-lbl">⚡ 要対応</div>
     </div>
-  </div>`;
+  </div></div>`;
 
   if (active.length === 0) {
     h += `<div class="empty" style="padding-top:10px">
@@ -1967,6 +1969,27 @@ function doDeleteMember(memberId) {
 // ────────────────────────────────────────
 // NAVIGATION
 // ────────────────────────────────────────
+function showStatsHelp() {
+  showModal(`
+    <div class="modal-title">📊 数値の見かた</div>
+    <div class="info-card" style="margin-bottom:10px">
+      <div class="info-row">
+        <span class="info-key">🏐 総ボール</span>
+        <span class="info-val muted" style="text-align:right;font-size:13px">進行中のタスクの合計数</span>
+      </div>
+      <div class="info-row">
+        <span class="info-key" style="color:var(--danger)">🔴 期限超過</span>
+        <span class="info-val muted" style="text-align:right;font-size:13px">期限日時を過ぎたタスク数</span>
+      </div>
+      <div class="info-row">
+        <span class="info-key" style="color:#D97706">⚡ 要対応</span>
+        <span class="info-val muted" style="text-align:right;font-size:13px">期限まで48時間以内のタスク数</span>
+      </div>
+    </div>
+    <button class="btn-sub" onclick="hideModal()">閉じる</button>
+  `);
+}
+
 function toggleExtra(memberId, count) {
   const el  = document.getElementById('extra-' + memberId);
   const btn = document.getElementById('extra-btn-' + memberId);
