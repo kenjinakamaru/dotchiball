@@ -837,6 +837,63 @@
       font-family: inherit;
     }
     .share-copy-btn:active { transform: scale(0.93); background: #1D4ED8; }
+
+    /* ── PROJECT CARD ── */
+    .project-card {
+      background: var(--card);
+      border-radius: var(--r);
+      padding: 16px;
+      margin-bottom: 10px;
+      box-shadow: var(--shadow);
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s;
+      border-left: 5px solid;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .project-card:active { transform: scale(0.98); }
+    .project-dot { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+    .project-card-info { flex: 1; min-width: 0; }
+    .project-card-name { font-size: 16px; font-weight: 800; color: var(--text); }
+    .project-card-meta { font-size: 12px; color: var(--text-light); margin-top: 3px; }
+    .project-card-count { display: flex; flex-direction: column; align-items: flex-end; }
+    .project-card-num { font-size: 28px; font-weight: 900; line-height: 1; }
+    .project-card-lbl { font-size: 10px; color: var(--text-light); font-weight: 700; }
+
+    /* ── PROJECT DETAIL HEADER ── */
+    .project-header {
+      background: white;
+      border-radius: var(--r);
+      padding: 14px;
+      margin-bottom: 14px;
+      box-shadow: var(--shadow);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-left: 5px solid;
+    }
+    .project-header-info { flex: 1; }
+    .project-header-name { font-size: 18px; font-weight: 900; }
+    .project-header-meta { font-size: 12px; color: var(--text-light); margin-top: 3px; }
+
+    /* ── PROJECT OPTION (form) ── */
+    .proj-opt {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      padding: 10px 6px 8px;
+      border: 2px solid var(--border);
+      border-radius: var(--r-sm);
+      cursor: pointer;
+      transition: all 0.15s;
+      background: white;
+      font-family: inherit;
+    }
+    .proj-opt.sel { border-color: var(--primary); background: var(--primary-light); }
+    .proj-opt-dot { width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0; }
+    .proj-opt-name { font-size: 11px; font-weight: 700; color: var(--text); text-align: center; line-height: 1.3; }
   </style>
 </head>
 <body>
@@ -870,6 +927,10 @@
     <button class="nav-item" data-tab="balls">
       <span class="nav-icon">🏐</span>
       <span class="nav-label">ボール一覧</span>
+    </button>
+    <button class="nav-item" data-tab="projects">
+      <span class="nav-icon">📁</span>
+      <span class="nav-label">PJ管理</span>
     </button>
     <button class="nav-item" data-tab="members">
       <span class="nav-icon">👥</span>
@@ -931,6 +992,7 @@
 const SETUP_KEY   = 'dotchiball_setup_v1';
 const STORAGE_KEY = 'dotchiball_v2'; // local mode only
 const COLORS = ['#3B82F6','#EF4444','#10B981','#F59E0B','#8B5CF6','#EC4899','#14B8A6','#F97316'];
+const PROJECT_COLORS = ['#6366F1','#0EA5E9','#10B981','#F59E0B','#EF4444','#8B5CF6','#EC4899','#14B8A6'];
 const EMAILJS_PUBLIC_KEY  = 'fMe4d2TI7qP8pacfn';
 const EMAILJS_SERVICE_ID  = 'service_3tnch6s';
 const EMAILJS_TEMPLATE_ID = 'template_cg18fl1';
@@ -951,15 +1013,16 @@ let db        = null;
 let roomCode  = null;
 let localMode = false;
 let loading   = false;
-let _loadedMembers = false;
-let _loadedBalls   = false;
-let _pendingBallId = null; // URLパラメータから取得したballId
+let _loadedMembers  = false;
+let _loadedBalls    = false;
+let _loadedProjects = false;
+let _pendingBallId  = null; // URLパラメータから取得したballId
 
 // ────────────────────────────────────────
 // STATE
 // ────────────────────────────────────────
 function defaultState() {
-  return { members: [], balls: [] };
+  return { members: [], balls: [], projects: [] };
 }
 let state = defaultState();
 
@@ -999,6 +1062,8 @@ function saveState() {
 let curTab    = 'dashboard';
 let curBallId = null;
 let curFilter = 'all';
+let curProjectId         = null; // dashboard: null=概要, pjId=プロジェクト詳細
+let curBallProjectFilter = null; // balls: null=全て, pjId=絞込み, '__none__'=未設定
 
 // ────────────────────────────────────────
 // HELPERS
@@ -1006,8 +1071,10 @@ let curFilter = 'all';
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
 const getMember  = id => state.members.find(m => m.id === id);
 const getBall    = id => state.balls.find(b => b.id === id);
-const activeBalls = () => state.balls.filter(b => b.status === 'active');
+const getProject = id => state.projects.find(p => p.id === id);
+const activeBalls   = () => state.balls.filter(b => b.status === 'active');
 const ballsByHolder = mid => activeBalls().filter(b => b.currentHolder === mid);
+const ballsByProject = pid => activeBalls().filter(b => b.projectId === pid);
 
 function daysUntil(dateStr) {
   if (!dateStr) return null;
@@ -1136,8 +1203,9 @@ function initFirebase(config, room) {
   db.enablePersistence({ synchronizeTabs: true }).catch(() => {});
   roomCode = room;
   loading = true;
-  _loadedMembers = false;
-  _loadedBalls   = false;
+  _loadedMembers  = false;
+  _loadedBalls    = false;
+  _loadedProjects = false;
   setupListeners();
   updateConnBadge(null);
   showConnInfo();
@@ -1166,10 +1234,21 @@ function setupListeners() {
     console.error('balls listener:', err);
     updateConnBadge(false);
   });
+
+  room.collection('projects').onSnapshot(snap => {
+    state.projects = snap.docs.map(d => d.data());
+    state.projects.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+    _loadedProjects = true;
+    checkAllLoaded();
+    render();
+  }, err => {
+    console.error('projects listener:', err);
+    updateConnBadge(false);
+  });
 }
 
 function checkAllLoaded() {
-  if (_loadedMembers && _loadedBalls && loading) {
+  if (_loadedMembers && _loadedBalls && _loadedProjects && loading) {
     loading = false;
     updateConnBadge(true);
     if (_pendingBallId) {
@@ -1253,9 +1332,10 @@ function doSetup() {
 }
 
 function useLocalMode() {
-  localMode = true;
-  loading   = false;
-  state     = loadLocalState();
+  localMode       = true;
+  loading         = false;
+  _loadedProjects = true;
+  state           = loadLocalState();
   hideSetupScreen();
   initDemo();
   render();
@@ -1302,6 +1382,7 @@ function render() {
     switch (curTab) {
       case 'dashboard': main.innerHTML = renderDashboard(); setTimeout(renderQR, 0); break;
       case 'balls':     main.innerHTML = renderBallsList(); break;
+      case 'projects':  main.innerHTML = renderProjects();  break;
       case 'members':   main.innerHTML = renderMembers();   break;
       default:          main.innerHTML = renderDashboard(); setTimeout(renderQR, 0);
     }
@@ -1319,6 +1400,11 @@ function renderDashboard() {
       <div class="empty-text">チームメンバーを登録して<br>ボールを投げ合いましょう！<br><br>責任の所在を一目で把握できます。</div>
       <button class="btn-main" onclick="showAddMember()" style="max-width:240px">👥 メンバーを追加する</button>
     </div>` + renderQRCard();
+  }
+
+  // プロジェクト詳細ビュー
+  if (curProjectId) {
+    return renderProjectDashboard(curProjectId);
   }
 
   const active  = activeBalls();
@@ -1342,19 +1428,122 @@ function renderDashboard() {
     </div>
   </div></div>`;
 
-  if (active.length === 0) {
-    h += `<div class="empty" style="padding-top:10px">
+  // プロジェクト一覧表示
+  if (state.projects.length > 0) {
+    h += `<div class="sec-title">プロジェクト別ボール</div>`;
+    state.projects.forEach(pj => {
+      const pjBalls   = ballsByProject(pj.id);
+      const pjOverdue = pjBalls.filter(b => { const m=minutesUntil(b.dueDate); return m!==null && m<0; });
+      h += `<div class="project-card" style="border-left-color:${pj.color}" onclick="drillProject('${pj.id}')">
+        <div class="project-dot" style="background:${pj.color}22">📁</div>
+        <div class="project-card-info">
+          <div class="project-card-name">${esc(pj.name)}</div>
+          <div class="project-card-meta">${pjBalls.length}件のボール${pjOverdue.length ? ` ／ 🔴 ${pjOverdue.length}件超過` : ''}</div>
+        </div>
+        <div class="project-card-count">
+          <div class="project-card-num" style="color:${pj.color}">${pjBalls.length}</div>
+          <div class="project-card-lbl">ボール</div>
+        </div>
+      </div>`;
+    });
+
+    const noPjBalls = active.filter(b => !b.projectId);
+    if (noPjBalls.length) {
+      h += `<div class="project-card" style="border-left-color:#CBD5E0" onclick="drillProject('__none__')">
+        <div class="project-dot" style="background:#F1F5F9">📋</div>
+        <div class="project-card-info">
+          <div class="project-card-name">プロジェクト未設定</div>
+          <div class="project-card-meta">${noPjBalls.length}件のボール</div>
+        </div>
+        <div class="project-card-count">
+          <div class="project-card-num" style="color:#A0AEC0">${noPjBalls.length}</div>
+          <div class="project-card-lbl">ボール</div>
+        </div>
+      </div>`;
+    }
+
+    if (active.length === 0) {
+      h += `<div class="empty" style="padding-top:10px">
+        <div class="empty-icon">🎉</div>
+        <div class="empty-title">ボールなし！</div>
+        <div class="empty-text">新しいタスクを投げましょう！</div>
+      </div>`;
+    }
+  } else {
+    // プロジェクトなし：メンバー別表示（従来の動作）
+    if (active.length === 0) {
+      h += `<div class="empty" style="padding-top:10px">
+        <div class="empty-icon">🎉</div>
+        <div class="empty-title">ボールなし！</div>
+        <div class="empty-text">今は誰もボールを持っていません。<br>新しいタスクを投げましょう！</div>
+      </div>`;
+    } else {
+      h += `<div class="sec-title">メンバー別ボール</div>`;
+      state.members.forEach(m => {
+        const balls = ballsByHolder(m.id);
+        if (!balls.length) return;
+        h += `<div class="player-section">
+          <div class="ps-header">
+            <div class="ps-left">${avHTML(m)}<span class="ps-name">${esc(m.name)}</span></div>
+            <div class="ball-count">${balls.length}</div>
+          </div>
+          ${balls.slice(0,3).map(b => ballCardMini(b)).join('')}
+          ${balls.length > 3 ? `
+            <div id="extra-${m.id}" style="display:none">${balls.slice(3).map(b => ballCardMini(b)).join('')}</div>
+            <button id="extra-btn-${m.id}" onclick="toggleExtra('${m.id}',${balls.length-3})"
+              style="width:100%;text-align:center;font-size:12px;color:var(--text-light);margin-top:6px;background:none;border:none;cursor:pointer;padding:8px 0;font-family:inherit">
+              他 ${balls.length-3} 件を表示 ∨
+            </button>` : ''}
+        </div>`;
+      });
+      const unassigned = active.filter(b => !getMember(b.currentHolder));
+      if (unassigned.length) {
+        h += `<div class="player-section">
+          <div class="ps-header">
+            <div class="ps-left"><div class="av" style="background:#A0AEC0">?</div><span class="ps-name">未割当</span></div>
+            <div class="ball-count" style="background:#A0AEC0">${unassigned.length}</div>
+          </div>
+          ${unassigned.map(b => ballCardMini(b)).join('')}
+        </div>`;
+      }
+    }
+  }
+
+  return h + renderQRCard();
+}
+
+function renderProjectDashboard(projectId) {
+  const isNone = projectId === '__none__';
+  const pj = isNone ? null : getProject(projectId);
+  if (!isNone && !pj) { curProjectId = null; return renderDashboard(); }
+
+  const pjBalls   = isNone ? activeBalls().filter(b => !b.projectId) : ballsByProject(projectId);
+  const pjOverdue = pjBalls.filter(b => { const m=minutesUntil(b.dueDate); return m!==null && m<0; });
+  const pjSoon    = pjBalls.filter(b => { const m=minutesUntil(b.dueDate); return m!==null && m>=0 && m<=2880; });
+  const color     = pj?.color || '#CBD5E0';
+
+  let h = `<div class="project-header" style="border-left-color:${color}">
+    <div class="project-dot" style="background:${color}22">${isNone ? '📋' : '📁'}</div>
+    <div class="project-header-info">
+      <div class="project-header-name">${isNone ? 'プロジェクト未設定' : esc(pj.name)}</div>
+      <div class="project-header-meta">${pjBalls.length}件 ／ 🔴 ${pjOverdue.length}件超過 ／ ⚡ ${pjSoon.length}件要対応</div>
+    </div>
+    <button onclick="drillBack()" style="background:none;border:none;font-size:22px;cursor:pointer;padding:4px">✕</button>
+  </div>`;
+
+  if (pjBalls.length === 0) {
+    h += `<div class="empty">
       <div class="empty-icon">🎉</div>
       <div class="empty-title">ボールなし！</div>
-      <div class="empty-text">今は誰もボールを持っていません。<br>新しいタスクを投げましょう！</div>
+      <div class="empty-text">このプロジェクトにはまだボールがありません。</div>
+      ${pj ? `<button class="btn-main" onclick="showCreateModal(null,null,'${pj.id}')" style="max-width:200px">🏐 投げる！</button>` : ''}
     </div>`;
-    return h + renderQRCard();
+    return h;
   }
 
   h += `<div class="sec-title">メンバー別ボール</div>`;
-
   state.members.forEach(m => {
-    const balls = ballsByHolder(m.id);
+    const balls = pjBalls.filter(b => b.currentHolder === m.id);
     if (!balls.length) return;
     h += `<div class="player-section">
       <div class="ps-header">
@@ -1371,7 +1560,7 @@ function renderDashboard() {
     </div>`;
   });
 
-  const unassigned = active.filter(b => !getMember(b.currentHolder));
+  const unassigned = pjBalls.filter(b => !getMember(b.currentHolder));
   if (unassigned.length) {
     h += `<div class="player-section">
       <div class="ps-header">
@@ -1382,8 +1571,11 @@ function renderDashboard() {
     </div>`;
   }
 
-  return h + renderQRCard();
+  return h;
 }
+
+function drillProject(pid) { curProjectId = pid; render(); window.scrollTo(0, 0); }
+function drillBack()        { curProjectId = null; render(); window.scrollTo(0, 0); }
 
 function ballCardMini(ball) {
   const urg    = urgency(ball);
@@ -1410,8 +1602,39 @@ function ballCardMini(ball) {
 // BALLS LIST
 // ────────────────────────────────────────
 function renderBallsList() {
-  const active = activeBalls();
-  const done   = state.balls.filter(b => b.status === 'done');
+  const allActive = activeBalls();
+  const allDone   = state.balls.filter(b => b.status === 'done');
+
+  // プロジェクトフィルタータブ
+  let h = '';
+  if (state.projects.length > 0) {
+    h += `<div class="filter-tabs">
+      <button class="ftab ${curBallProjectFilter===null?'active':''}" onclick="setBallProjectFilter(null)">
+        📁 全PJ<span class="cnt">${allActive.length}</span>
+      </button>`;
+    state.projects.forEach(pj => {
+      const cnt = ballsByProject(pj.id).length;
+      h += `<button class="ftab ${curBallProjectFilter===pj.id?'active':''}" onclick="setBallProjectFilter('${pj.id}')">
+        <div class="ftab-dot" style="background:${pj.color}"></div>
+        ${esc(pj.name)}<span class="cnt">${cnt}</span>
+      </button>`;
+    });
+    const noCnt = allActive.filter(b => !b.projectId).length;
+    if (noCnt > 0) {
+      h += `<button class="ftab ${curBallProjectFilter==='__none__'?'active':''}" onclick="setBallProjectFilter('__none__')">
+        未設定<span class="cnt">${noCnt}</span>
+      </button>`;
+    }
+    h += `</div>`;
+  }
+
+  // プロジェクトで絞り込み
+  const active = curBallProjectFilter === null    ? allActive
+    : curBallProjectFilter === '__none__' ? allActive.filter(b => !b.projectId)
+    : allActive.filter(b => b.projectId === curBallProjectFilter);
+  const done = curBallProjectFilter === null    ? allDone
+    : curBallProjectFilter === '__none__' ? allDone.filter(b => !b.projectId)
+    : allDone.filter(b => b.projectId === curBallProjectFilter);
 
   let filtered = curFilter === 'done' ? done
     : curFilter === 'all' ? active
@@ -1422,11 +1645,11 @@ function renderBallsList() {
 
   const tabs = [
     { key:'all', label:'全て', count: active.length },
-    ...state.members.map(m => ({ key:m.id, label:m.name, count: ballsByHolder(m.id).length, color: m.color })),
+    ...state.members.map(m => ({ key:m.id, label:m.name, count: active.filter(b=>b.currentHolder===m.id).length, color: m.color })),
     { key:'done', label:'完了', count: done.length },
   ];
 
-  let h = `<div class="filter-tabs">`;
+  h += `<div class="filter-tabs">`;
   tabs.forEach(t => {
     h += `<button class="ftab ${curFilter===t.key?'active':''}" onclick="setFilter('${t.key}')">
       ${t.color ? `<div class="ftab-dot" style="background:${t.color}"></div>` : ''}
@@ -1436,11 +1659,12 @@ function renderBallsList() {
   h += `</div>`;
 
   if (!filtered.length) {
+    const preProj = (curBallProjectFilter && curBallProjectFilter !== '__none__') ? `'${curBallProjectFilter}'` : 'null';
     h += `<div class="empty">
       <div class="empty-icon">${curFilter==='done'?'✅':curFilter==='all'?'🎉':'😊'}</div>
       <div class="empty-title">${curFilter==='done'?'完了ボールなし':curFilter==='all'?'ボールなし！':`${esc(getMember(curFilter)?.name??'')}さんはボールなし`}</div>
       <div class="empty-text">${curFilter==='all'?'新しいボールを投げましょう！':'このメンバーはフリーです！'}</div>
-      ${curFilter!=='done'?`<button class="btn-main" onclick="showCreateModal(null,'${curFilter==='all'?'':curFilter}')" style="max-width:200px">🏐 投げる！</button>`:''}
+      ${curFilter!=='done'?`<button class="btn-main" onclick="showCreateModal(null,'${curFilter==='all'?'':curFilter}',${preProj})" style="max-width:200px">🏐 投げる！</button>`:''}
     </div>`;
     return h;
   }
@@ -1448,6 +1672,8 @@ function renderBallsList() {
   filtered.forEach(b => { h += ballCardFull(b); });
   return h;
 }
+
+function setBallProjectFilter(pid) { curBallProjectFilter = pid; curFilter = 'all'; render(); }
 
 function ballCardFull(ball) {
   const urg    = urgency(ball);
@@ -1604,6 +1830,40 @@ function renderMembers() {
 }
 
 // ────────────────────────────────────────
+// PROJECTS SCREEN
+// ────────────────────────────────────────
+function renderProjects() {
+  let h = `<button class="btn-main" onclick="showCreateProjectModal()" style="margin-bottom:14px">＋ プロジェクトを作成</button>`;
+
+  if (!state.projects.length) {
+    h += `<div class="empty">
+      <div class="empty-icon">📁</div>
+      <div class="empty-title">プロジェクトなし</div>
+      <div class="empty-text">プロジェクトを作成して<br>ルーム内のボールを整理しましょう！</div>
+    </div>`;
+    return h;
+  }
+
+  state.projects.forEach(pj => {
+    const cnt  = ballsByProject(pj.id).length;
+    const done = state.balls.filter(b => b.status==='done' && b.projectId===pj.id).length;
+    h += `<div class="member-card">
+      <div class="av av-lg" style="background:${pj.color}">📁</div>
+      <div class="mc-info">
+        <div class="mc-name">${esc(pj.name)}</div>
+        <div class="mc-stat">進行中: ${cnt}個 ／ 完了: ${done}個</div>
+      </div>
+      <div class="mc-actions">
+        <button class="icon-btn" onclick="showEditProjectModal('${pj.id}')">✏️</button>
+        <button class="icon-btn del" onclick="confirmDeleteProject('${pj.id}')">🗑</button>
+      </div>
+    </div>`;
+  });
+
+  return h;
+}
+
+// ────────────────────────────────────────
 // MODALS
 // ────────────────────────────────────────
 function showModal(inner) {
@@ -1613,16 +1873,31 @@ function showModal(inner) {
 function hideModal() { document.getElementById('modal-overlay').classList.add('hidden'); }
 
 // ── CREATE BALL ──
-function showCreateModal(defaultHolderId = null, preHolder = null) {
-  const holderId = preHolder || defaultHolderId || '';
+function showCreateModal(defaultHolderId = null, preHolder = null, preProjectId = null) {
+  const holderId  = preHolder || defaultHolderId || '';
+  const projectId = preProjectId || '';
 
   const memberOpts = state.members.map(m =>
     `<button class="p-opt ${holderId===m.id?'sel':''}" onclick="selPlayer(this,'${m.id}')" data-pid="${m.id}">
       ${avHTML(m)} <span class="p-opt-name">${esc(m.name)}</span>
     </button>`).join('');
 
+  const projectOpts = state.projects.map(pj =>
+    `<button class="proj-opt ${projectId===pj.id?'sel':''}" onclick="selProject(this,'${pj.id}')" data-ppid="${pj.id}">
+      <div class="proj-opt-dot" style="background:${pj.color}"></div>
+      <span class="proj-opt-name">${esc(pj.name)}</span>
+    </button>`).join('');
+
+  const projectSection = state.projects.length ? `
+    <div class="fgroup">
+      <label class="flabel">プロジェクト（任意）</label>
+      <div class="player-selector" id="pps">${projectOpts}</div>
+      <input type="hidden" id="f-project" value="${projectId}">
+    </div>` : '';
+
   showModal(`
     <div class="modal-title">🏐 ボールを投げる</div>
+    ${projectSection}
     <div class="fgroup">
       <label class="flabel">タスク名 *</label>
       <input class="finput" id="f-title" type="text" placeholder="例: 企画書のレビュー" maxlength="100" autocomplete="off">
@@ -1685,6 +1960,70 @@ function showThrowModal(ballId) {
       <input class="finput" id="f-note" type="text" placeholder="「確認お願いします！」など" maxlength="100" autocomplete="off">
     </div>
     <button class="btn-main" onclick="doThrowBall('${ballId}')">➤ えいっ！投げる！</button>
+    <button class="btn-sub" onclick="hideModal()">キャンセル</button>
+  `);
+}
+
+// ── CREATE / EDIT PROJECT ──
+function showCreateProjectModal() {
+  const initColor = PROJECT_COLORS[0];
+  const swatches = PROJECT_COLORS.map(c =>
+    `<div class="cswatch ${initColor===c?'sel':''}" style="background:${c}" onclick="selColor(this,'${c}')" data-c="${c}"></div>`
+  ).join('');
+
+  showModal(`
+    <div class="modal-title">📁 プロジェクトを作成</div>
+    <div class="fgroup">
+      <label class="flabel">プロジェクト名 *</label>
+      <input class="finput" id="f-pname" type="text" placeholder="例: 新規開発PJ" maxlength="30" autocomplete="off">
+    </div>
+    <div class="fgroup">
+      <label class="flabel">カラー</label>
+      <div class="color-row" id="cp">${swatches}</div>
+      <input type="hidden" id="f-mcolor" value="${initColor}">
+    </div>
+    <button class="btn-main" onclick="doAddProject()">＋ 作成する</button>
+    <button class="btn-sub" onclick="hideModal()">キャンセル</button>
+  `);
+  setTimeout(() => document.getElementById('f-pname')?.focus(), 120);
+}
+
+function showEditProjectModal(projectId) {
+  const pj = getProject(projectId);
+  if (!pj) return;
+  const swatches = PROJECT_COLORS.map(c =>
+    `<div class="cswatch ${pj.color===c?'sel':''}" style="background:${c}" onclick="selColor(this,'${c}')" data-c="${c}"></div>`
+  ).join('');
+
+  showModal(`
+    <div class="modal-title">✏️ プロジェクト編集</div>
+    <div class="fgroup">
+      <label class="flabel">プロジェクト名 *</label>
+      <input class="finput" id="f-pname" type="text" maxlength="30" value="${esc(pj.name)}" autocomplete="off">
+    </div>
+    <div class="fgroup">
+      <label class="flabel">カラー</label>
+      <div class="color-row" id="cp">${swatches}</div>
+      <input type="hidden" id="f-mcolor" value="${pj.color}">
+    </div>
+    <button class="btn-main" onclick="doEditProject('${projectId}')">💾 保存</button>
+    <button class="btn-sub" onclick="hideModal()">キャンセル</button>
+  `);
+  setTimeout(() => document.getElementById('f-pname')?.focus(), 120);
+}
+
+function confirmDeleteProject(projectId) {
+  const pj = getProject(projectId);
+  if (!pj) return;
+  const cnt = ballsByProject(projectId).length;
+  showModal(`
+    <div class="modal-title">🗑 プロジェクトを削除</div>
+    <div style="color:var(--text-light);margin-bottom:20px;font-size:14px;line-height:1.6">
+      「${esc(pj.name)}」を削除しますか？<br>
+      ${cnt ? `<strong style="color:var(--danger)">このプロジェクトに属する${cnt}個のボールは「未設定」になります。</strong><br>` : ''}
+      この操作は元に戻せません。
+    </div>
+    <button class="btn-main red" onclick="doDeleteProject('${projectId}')">🗑 削除する</button>
     <button class="btn-sub" onclick="hideModal()">キャンセル</button>
   `);
 }
@@ -1760,6 +2099,12 @@ function selPlayer(el, pid) {
   const inp = document.getElementById('f-throwto') || document.getElementById('f-holder');
   if (inp) inp.value = pid;
 }
+function selProject(el, pid) {
+  document.querySelectorAll('.proj-opt').forEach(o => o.classList.remove('sel'));
+  el.classList.add('sel');
+  const inp = document.getElementById('f-project');
+  if (inp) inp.value = pid;
+}
 function selPri(el) {
   document.querySelectorAll('.pri-opt').forEach(o => o.classList.remove('sel'));
   el.classList.add('sel');
@@ -1775,12 +2120,13 @@ function selColor(el, c) {
 // ACTIONS
 // ────────────────────────────────────────
 function doCreateBall() {
-  const title  = document.getElementById('f-title')?.value.trim();
-  const desc   = document.getElementById('f-desc')?.value.trim();
-  const holder = document.getElementById('f-holder')?.value;
-  const due    = document.getElementById('f-due')?.value;
-  const pri    = document.getElementById('f-pri')?.value || 'medium';
-  const note   = document.getElementById('f-note')?.value.trim();
+  const title     = document.getElementById('f-title')?.value.trim();
+  const desc      = document.getElementById('f-desc')?.value.trim();
+  const holder    = document.getElementById('f-holder')?.value;
+  const due       = document.getElementById('f-due')?.value;
+  const pri       = document.getElementById('f-pri')?.value || 'medium';
+  const note      = document.getElementById('f-note')?.value.trim();
+  const projectId = document.getElementById('f-project')?.value || null;
 
   if (!title)  { toast('タスク名を入力してください'); document.getElementById('f-title')?.focus(); return; }
   if (!holder) { toast('投げる相手を選んでください'); return; }
@@ -1790,6 +2136,7 @@ function doCreateBall() {
     id: uid(), title, description: desc||'',
     currentHolder: holder, dueDate: due||null, priority: pri,
     status: 'active', createdAt: now,
+    projectId: projectId || null,
     history: [{ id:uid(), from:null, to:holder, timestamp:now, note:note||'', type:'create' }]
   };
 
@@ -1966,6 +2313,67 @@ function doDeleteMember(memberId) {
   toast('🗑 メンバーを削除しました');
 }
 
+function doAddProject() {
+  const name  = document.getElementById('f-pname')?.value.trim();
+  const color = document.getElementById('f-mcolor')?.value || PROJECT_COLORS[0];
+  if (!name) { toast('プロジェクト名を入力してください'); document.getElementById('f-pname')?.focus(); return; }
+
+  const project = { id: uid(), name, color, createdAt: new Date().toISOString() };
+
+  if (localMode) {
+    state.projects.push(project);
+    saveState();
+    render();
+  } else {
+    fsSet('projects', project);
+  }
+
+  hideModal();
+  toast(`📁 「${name}」を作成しました！`);
+}
+
+function doEditProject(projectId) {
+  const name  = document.getElementById('f-pname')?.value.trim();
+  const color = document.getElementById('f-mcolor')?.value;
+  if (!name) { toast('プロジェクト名を入力してください'); return; }
+
+  const pj = getProject(projectId);
+  if (!pj) return;
+
+  const updated = { ...pj, name, color: color || pj.color };
+
+  if (localMode) {
+    const idx = state.projects.findIndex(p => p.id === projectId);
+    if (idx !== -1) state.projects[idx] = updated;
+    saveState();
+    render();
+  } else {
+    fsSet('projects', updated);
+  }
+
+  hideModal();
+  toast('💾 保存しました');
+}
+
+function doDeleteProject(projectId) {
+  if (curProjectId === projectId) curProjectId = null;
+
+  if (localMode) {
+    state.projects = state.projects.filter(p => p.id !== projectId);
+    state.balls = state.balls.map(b => b.projectId === projectId ? { ...b, projectId: null } : b);
+    saveState();
+    render();
+  } else {
+    fsDelete('projects', projectId);
+    state.balls.filter(b => b.projectId === projectId).forEach(b => {
+      fsSet('balls', { ...b, projectId: null });
+    });
+  }
+
+  hideModal();
+  toast('🗑 プロジェクトを削除しました');
+}
+
 // ────────────────────────────────────────
 // NAVIGATION
 // ────────────────────────────────────────
@@ -2000,7 +2408,13 @@ function toggleExtra(memberId, count) {
   if (isHidden) setTimeout(renderQR, 0);
 }
 
-function setTab(tab) { curTab = tab; curBallId = null; if (tab==='balls') curFilter='all'; render(); }
+function setTab(tab) {
+  curTab = tab;
+  curBallId = null;
+  if (tab === 'balls')     { curFilter = 'all'; }
+  if (tab === 'dashboard') { curProjectId = null; }
+  render();
+}
 function setFilter(f) { curFilter = f; render(); }
 function viewBall(id) { curBallId = id; render(); window.scrollTo(0,0); }
 function goBack() { curBallId = null; render(); }
@@ -2034,7 +2448,10 @@ document.getElementById('btn-new').addEventListener('click', () => {
     setTimeout(() => showAddMember(), 80);
     return;
   }
-  showCreateModal();
+  const preProj = (curProjectId && curProjectId !== '__none__') ? curProjectId
+    : (curBallProjectFilter && curBallProjectFilter !== '__none__') ? curBallProjectFilter
+    : null;
+  showCreateModal(null, null, preProj);
 });
 
 document.querySelectorAll('.nav-item').forEach(el => {
@@ -2061,6 +2478,10 @@ function initDemo() {
   const m3 = { id:uid(), name:'佐藤さん',  color:'#10B981' };
   state.members = [m1, m2, m3];
 
+  const pj1 = { id:uid(), name:'新規プロジェクトA', color:'#6366F1', createdAt: new Date(Date.now()-86400000*2).toISOString() };
+  const pj2 = { id:uid(), name:'定例業務',          color:'#0EA5E9', createdAt: new Date(Date.now()-86400000).toISOString() };
+  state.projects = [pj1, pj2];
+
   const now = new Date();
   const d = n => { const x=new Date(now); x.setDate(x.getDate()+n); return x.toISOString().split('T')[0]; };
   const ts = n => new Date(now.getTime() - n*3600000).toISOString();
@@ -2068,14 +2489,14 @@ function initDemo() {
   state.balls = [
     {
       id:uid(), title:'企画書のレビュー依頼', description:'3月末締切の新規プロジェクト企画書です。ご確認お願いします。',
-      currentHolder:m1.id, dueDate:d(1), priority:'high', status:'active', createdAt:ts(26),
+      currentHolder:m1.id, dueDate:d(1), priority:'high', status:'active', createdAt:ts(26), projectId:pj1.id,
       history:[
         { id:uid(), from:m2.id, to:m1.id, timestamp:ts(26), note:'急ぎでお願いします！', type:'create' }
       ]
     },
     {
       id:uid(), title:'ロゴデザインの修正', description:'フォントをもう少し太くしてほしいです。',
-      currentHolder:m3.id, dueDate:d(6), priority:'medium', status:'active', createdAt:ts(50),
+      currentHolder:m3.id, dueDate:d(6), priority:'medium', status:'active', createdAt:ts(50), projectId:pj1.id,
       history:[
         { id:uid(), from:null,  to:m2.id, timestamp:ts(50), note:'',                     type:'create' },
         { id:uid(), from:m2.id, to:m3.id, timestamp:ts(24), note:'デザイナーさんお願いします', type:'throw'  }
@@ -2083,14 +2504,14 @@ function initDemo() {
     },
     {
       id:uid(), title:'契約書の最終確認', description:'',
-      currentHolder:m2.id, dueDate:d(-1), priority:'high', status:'active', createdAt:ts(74),
+      currentHolder:m2.id, dueDate:d(-1), priority:'high', status:'active', createdAt:ts(74), projectId:pj2.id,
       history:[
         { id:uid(), from:m3.id, to:m2.id, timestamp:ts(74), note:'法務確認お願いします', type:'create' }
       ]
     },
     {
       id:uid(), title:'MTG議事録の共有', description:'',
-      currentHolder:m1.id, dueDate:d(14), priority:'low', status:'active', createdAt:ts(12),
+      currentHolder:m1.id, dueDate:d(14), priority:'low', status:'active', createdAt:ts(12), projectId:pj2.id,
       history:[
         { id:uid(), from:m3.id, to:m1.id, timestamp:ts(12), note:'', type:'create' }
       ]
