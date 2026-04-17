@@ -1,2193 +1,970 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="theme-color" content="#FF6B35">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <title>どっち!?ボール</title>
-  <style>
-    :root {
-      --primary: #FF6B35;
-      --primary-dark: #E55A24;
-      --primary-light: rgba(255,107,53,0.1);
-      --success: #27AE60;
-      --warning: #F39C12;
-      --danger: #E74C3C;
-      --bg: #F0F2F5;
-      --card: #FFFFFF;
-      --text: #1A202C;
-      --text-light: #718096;
-      --border: #E2E8F0;
-      --shadow: 0 2px 12px rgba(0,0,0,0.07);
-      --shadow-md: 0 4px 20px rgba(0,0,0,0.12);
-      --r: 16px;
-      --r-sm: 10px;
-    }
-    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Noto Sans JP', 'YuGothic', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100dvh;
-      overflow-x: hidden;
-    }
-    #app {
-      max-width: 480px;
-      margin: 0 auto;
-      min-height: 100dvh;
-      background: var(--bg);
-      position: relative;
-      padding-bottom: 80px;
-    }
-    @media(min-width:480px) { #app { box-shadow: 0 0 60px rgba(0,0,0,0.15); } }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>どっちボール | 仕事のボールを、迷わず次の人に渡すツール</title>
+<meta name="description" content="「今、ボールは誰にある？」がひと目でわかる、モバイルファーストのプロジェクト推進ツール。URLをタップするだけ、登録不要。仕事の押し付け合いと抜け漏れをゼロに。" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #ffffff;
+    --ink: #0B1B2B;
+    --ink-2: #3A4A5B;
+    --muted: #6B7A8A;
+    --line: #E6EBF0;
+    --soft: #F5F8FA;
+    --brand-1: #00BFA6;
+    --brand-2: #6BD960;
+    --brand-dark: #007A6C;
+    --warn: #FF6B35;
+    --radius: 16px;
+    --radius-sm: 10px;
+    --shadow-sm: 0 1px 2px rgba(11,27,43,.04), 0 2px 8px rgba(11,27,43,.04);
+    --shadow-md: 0 4px 12px rgba(11,27,43,.06), 0 12px 32px rgba(11,27,43,.08);
+    --shadow-lg: 0 12px 24px rgba(11,27,43,.08), 0 24px 60px rgba(11,27,43,.12);
+    --grad: linear-gradient(135deg, #00BFA6 0%, #6BD960 100%);
+  }
 
-    /* ── HEADER ── */
-    #app-header {
-      background: linear-gradient(135deg, #FF6B35 0%, #FF8C42 100%);
-      color: white;
-      padding: 14px 16px;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      box-shadow: 0 3px 16px rgba(255,107,53,0.35);
-    }
-    .header-row { display: flex; align-items: center; justify-content: space-between; }
-    .logo { font-size: 20px; font-weight: 900; letter-spacing: -0.5px; }
-    .logo-sub { font-size: 10px; opacity: 0.85; font-weight: 500; display: block; margin-top: 1px; }
-    .btn-throw {
-      background: rgba(255,255,255,0.22);
-      color: white;
-      border: 1.5px solid rgba(255,255,255,0.5);
-      padding: 8px 18px;
-      border-radius: 24px;
-      font-size: 14px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.15s;
-      font-family: inherit;
-      backdrop-filter: blur(4px);
-    }
-    .btn-throw:active { transform: scale(0.93); background: rgba(255,255,255,0.35); }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    font-family: "Inter", "Noto Sans JP", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-feature-settings: "palt";
+    color: var(--ink);
+    background: var(--bg);
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  img { max-width: 100%; display: block; }
+  a { color: inherit; text-decoration: none; }
 
-    /* ── CONNECTION BADGE ── */
-    #conn-badge {
-      display: none;
-      align-items: center;
-      gap: 5px;
-      font-size: 11px;
-      font-weight: 700;
-      opacity: 0.9;
-      margin-top: 4px;
-    }
-    .conn-dot { width: 8px; height: 8px; border-radius: 50%; background: #27AE60; flex-shrink: 0; }
-    .conn-dot.offline { background: #E74C3C; }
-    .conn-dot.connecting { background: #F59E0B; animation: pulse 1s ease-in-out infinite; }
-    #room-display {
-      font-size: 10px;
-      opacity: 0.7;
-      font-weight: 600;
-      margin-top: 2px;
-      cursor: pointer;
-      display: none;
-    }
-    #room-display:hover { opacity: 1; }
+  .wrap { max-width: 1160px; margin: 0 auto; padding: 0 24px; }
 
-    /* ── BOTTOM NAV ── */
-    #bottom-nav {
-      position: fixed;
-      bottom: 0;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 100%;
-      max-width: 480px;
-      background: white;
-      border-top: 1px solid var(--border);
-      display: flex;
-      padding: 6px 0 max(6px, env(safe-area-inset-bottom));
-      z-index: 100;
-      box-shadow: 0 -2px 16px rgba(0,0,0,0.08);
-    }
-    .nav-item {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 3px;
-      padding: 4px 0;
-      border: none;
-      background: none;
-      cursor: pointer;
-      color: var(--text-light);
-      transition: color 0.2s;
-      font-family: inherit;
-    }
-    .nav-item.active { color: var(--primary); }
-    .nav-icon { font-size: 22px; line-height: 1; }
-    .nav-label { font-size: 10px; font-weight: 700; }
+  /* ===== Header ===== */
+  .nav {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(255,255,255,.85);
+    backdrop-filter: saturate(180%) blur(12px);
+    -webkit-backdrop-filter: saturate(180%) blur(12px);
+    border-bottom: 1px solid rgba(230,235,240,.7);
+  }
+  .nav-inner {
+    display: flex; align-items: center; justify-content: space-between;
+    height: 68px;
+  }
+  .brand {
+    display: flex; align-items: center; gap: 10px;
+    font-weight: 700; letter-spacing: -.01em;
+  }
+  .brand-mark {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: var(--grad);
+    display: grid; place-items: center;
+    color: white; font-weight: 900; font-size: 14px;
+    box-shadow: var(--shadow-sm);
+  }
+  .brand-name { font-size: 17px; }
+  .nav-links {
+    display: flex; align-items: center; gap: 28px;
+    font-size: 14px; color: var(--ink-2);
+  }
+  .nav-links a { transition: color .2s; }
+  .nav-links a:hover { color: var(--ink); }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 12px 22px;
+    border-radius: 999px;
+    font-weight: 600; font-size: 14px;
+    cursor: pointer;
+    transition: transform .15s ease, box-shadow .2s ease, opacity .2s;
+    border: none;
+    white-space: nowrap;
+  }
+  .btn-primary {
+    color: white;
+    background: var(--grad);
+    box-shadow: 0 4px 14px rgba(0,191,166,.35);
+  }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0,191,166,.45); }
+  .btn-ghost {
+    color: var(--ink);
+    background: transparent;
+    border: 1px solid var(--line);
+  }
+  .btn-ghost:hover { background: var(--soft); }
+  .btn-lg { padding: 16px 30px; font-size: 15px; }
 
-    /* ── MAIN CONTENT ── */
-    #main-content { padding: 14px 14px 0; }
+  @media (max-width: 720px) {
+    .nav-links { display: none; }
+    .nav-inner { height: 60px; }
+  }
 
-    /* ── SECTION TITLE ── */
-    .sec-title {
-      font-size: 11px;
-      font-weight: 800;
-      color: var(--text-light);
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      margin: 20px 0 10px;
-    }
-    .sec-title:first-child { margin-top: 0; }
+  /* ===== Hero ===== */
+  .hero {
+    position: relative;
+    padding: 96px 0 80px;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: "";
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse at 20% 10%, rgba(0,191,166,.08), transparent 55%),
+      radial-gradient(ellipse at 90% 30%, rgba(107,217,96,.08), transparent 50%);
+    pointer-events: none;
+  }
+  .hero-grid {
+    display: grid; grid-template-columns: 1.1fr 1fr;
+    gap: 60px; align-items: center;
+    position: relative;
+  }
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 6px 14px;
+    background: rgba(0,191,166,.08);
+    color: var(--brand-dark);
+    border-radius: 999px;
+    font-size: 12px; font-weight: 600;
+    letter-spacing: .02em;
+  }
+  .eyebrow::before {
+    content: ""; width: 6px; height: 6px; border-radius: 50%;
+    background: var(--brand-1);
+  }
+  h1.hero-title {
+    font-family: "Noto Sans JP", "Inter", sans-serif;
+    font-size: clamp(36px, 5.2vw, 60px);
+    line-height: 1.2;
+    letter-spacing: -.02em;
+    font-weight: 900;
+    margin: 20px 0 24px;
+  }
+  .hero-title .accent {
+    background: var(--grad);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .hero-lead {
+    font-size: 17px; color: var(--ink-2);
+    max-width: 540px;
+    margin-bottom: 32px;
+  }
+  .hero-cta { display: flex; gap: 12px; flex-wrap: wrap; }
+  .hero-note {
+    margin-top: 18px;
+    font-size: 13px; color: var(--muted);
+    display: flex; align-items: center; gap: 14px;
+    flex-wrap: wrap;
+  }
+  .hero-note span { display: inline-flex; align-items: center; gap: 6px; }
+  .check {
+    width: 14px; height: 14px; color: var(--brand-1);
+  }
 
-    /* ── STATS GRID ── */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-      margin-bottom: 18px;
-    }
-    .stat-card {
-      background: white;
-      border-radius: var(--r-sm);
-      padding: 14px 10px;
-      text-align: center;
-      box-shadow: var(--shadow);
-    }
-    .stat-num { font-size: 30px; font-weight: 900; color: var(--text); line-height: 1; }
-    .stat-lbl { font-size: 10px; color: var(--text-light); font-weight: 700; margin-top: 4px; }
-    .stat-card.danger .stat-num { color: var(--danger); }
-    .stat-card.warn .stat-num { color: var(--warning); }
+  /* Hero visual: phone mockup */
+  .hero-visual { position: relative; display: grid; place-items: center; }
+  .phone {
+    width: 280px; aspect-ratio: 9/19;
+    background: linear-gradient(160deg, #00BFA6 0%, #6BD960 100%);
+    border-radius: 44px;
+    padding: 14px;
+    box-shadow:
+      0 30px 80px rgba(0,122,108,.28),
+      0 8px 24px rgba(11,27,43,.12),
+      inset 0 0 0 2px rgba(255,255,255,.15);
+    position: relative;
+    z-index: 2;
+  }
+  .phone-screen {
+    width: 100%; height: 100%;
+    background: linear-gradient(170deg, #00BFA6 0%, #51CE7A 100%);
+    border-radius: 32px;
+    padding: 28px 22px;
+    color: white;
+    display: flex; flex-direction: column; align-items: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .phone-notch {
+    position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+    width: 90px; height: 22px;
+    background: rgba(0,0,0,.6);
+    border-radius: 14px;
+  }
+  .ball-icon {
+    width: 64px; height: 64px;
+    margin-top: 42px; margin-bottom: 22px;
+    filter: drop-shadow(0 4px 12px rgba(0,0,0,.18));
+  }
+  .phone-title {
+    font-size: 34px; font-weight: 900; margin: 0 0 10px;
+    letter-spacing: -.01em;
+  }
+  .phone-sub {
+    font-size: 12.5px; text-align: center; opacity: .95;
+    line-height: 1.6; margin-bottom: 22px;
+    font-weight: 500;
+  }
+  .phone-card {
+    width: 100%; background: rgba(255,255,255,.18);
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    padding: 10px 12px;
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 8px;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.45;
+  }
+  .phone-card-icon {
+    width: 26px; height: 26px; border-radius: 8px;
+    background: rgba(255,255,255,.25);
+    display: grid; place-items: center;
+    flex-shrink: 0;
+    font-size: 14px;
+  }
+  .phone-btn {
+    position: absolute; bottom: 20px; left: 22px; right: 22px;
+    height: 44px; border-radius: 24px;
+    background: white;
+    color: var(--brand-dark);
+    display: grid; place-items: center;
+    font-weight: 700; font-size: 14px;
+  }
 
-    /* ── BALL CARD ── */
-    .ball-card {
-      background: var(--card);
-      border-radius: var(--r);
-      padding: 14px;
-      margin-bottom: 10px;
-      box-shadow: var(--shadow);
-      cursor: pointer;
-      transition: transform 0.15s, box-shadow 0.15s;
-      border-left: 4px solid transparent;
-    }
-    .ball-card:active { transform: scale(0.98); box-shadow: var(--shadow-md); }
-    .ball-card.urgent  { border-left-color: var(--danger); }
-    .ball-card.warning { border-left-color: var(--warning); }
-    .ball-card.normal  { border-left-color: var(--success); }
-    .ball-card.no-date { border-left-color: #CBD5E0; }
-    .ball-card.done-card { opacity: 0.55; border-left-color: #A0AEC0; }
+  /* Decorative blobs */
+  .blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(60px);
+    opacity: .45;
+    z-index: 1;
+  }
+  .blob-1 { width: 320px; height: 320px; top: -40px; right: -40px;
+    background: radial-gradient(circle, #6BD960, transparent 70%); }
+  .blob-2 { width: 260px; height: 260px; bottom: -60px; left: -20px;
+    background: radial-gradient(circle, #00BFA6, transparent 70%); }
 
-    .card-top { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
-    .ball-emoji { font-size: 26px; flex-shrink: 0; line-height: 1; margin-top: 1px; }
-    .ball-info { flex: 1; min-width: 0; }
-    .ball-title { font-size: 15px; font-weight: 700; color: var(--text); line-height: 1.35; margin-bottom: 5px; }
-    .ball-desc { font-size: 12px; color: var(--text-light); line-height: 1.4; margin-bottom: 6px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-    .badges { display: flex; gap: 5px; flex-wrap: wrap; }
+  @media (max-width: 860px) {
+    .hero-grid { grid-template-columns: 1fr; gap: 48px; }
+    .hero { padding: 56px 0 56px; }
+    .phone { width: 240px; }
+  }
 
-    .badge {
-      font-size: 11px;
-      font-weight: 700;
-      padding: 2px 9px;
-      border-radius: 20px;
-    }
-    .badge.urgent  { background: #FEE2E2; color: var(--danger); }
-    .badge.warning { background: #FEF3C7; color: #D97706; }
-    .badge.normal  { background: #DCFCE7; color: #16A34A; }
-    .badge.no-date { background: #F1F5F9; color: var(--text-light); }
-    .badge.high    { background: #FEE2E2; color: var(--danger); }
-    .badge.medium  { background: #FEF3C7; color: #D97706; }
-    .badge.low     { background: #DCFCE7; color: #16A34A; }
+  /* ===== Section ===== */
+  section { padding: 96px 0; }
+  .section-head { text-align: center; max-width: 680px; margin: 0 auto 56px; }
+  .section-label {
+    font-size: 13px; font-weight: 700; letter-spacing: .2em;
+    color: var(--brand-dark); text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+  .section-title {
+    font-family: "Noto Sans JP", "Inter", sans-serif;
+    font-size: clamp(28px, 3.6vw, 40px);
+    font-weight: 800;
+    letter-spacing: -.02em;
+    line-height: 1.3;
+    margin: 0 0 18px;
+  }
+  .section-lead {
+    color: var(--ink-2);
+    font-size: 16px;
+  }
 
-    .card-bottom { display: flex; align-items: center; justify-content: space-between; }
-    .holder-row { display: flex; align-items: center; gap: 7px; }
-    .holder-name { font-size: 13px; font-weight: 600; color: var(--text); }
+  /* ===== Problem section ===== */
+  .problem { background: var(--soft); }
+  .problem-quote {
+    text-align: center;
+    max-width: 720px; margin: 0 auto 56px;
+    font-family: "Noto Sans JP", sans-serif;
+    font-size: clamp(22px, 2.8vw, 30px);
+    font-weight: 700;
+    letter-spacing: -.01em;
+    line-height: 1.55;
+    color: var(--ink);
+  }
+  .problem-quote .mark {
+    color: var(--warn);
+  }
+  .problem-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+  .problem-card {
+    background: white;
+    border-radius: var(--radius);
+    padding: 32px 28px;
+    border: 1px solid var(--line);
+    transition: transform .2s, box-shadow .2s;
+  }
+  .problem-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+  .problem-num {
+    font-family: "Inter", sans-serif;
+    font-size: 44px; font-weight: 800;
+    line-height: 1;
+    background: var(--grad);
+    -webkit-background-clip: text; background-clip: text;
+    color: transparent;
+    margin-bottom: 16px;
+  }
+  .problem-card h3 {
+    font-size: 20px; font-weight: 700;
+    margin: 0 0 12px;
+    letter-spacing: -.01em;
+  }
+  .problem-card p {
+    color: var(--ink-2); font-size: 14.5px;
+    margin: 0;
+    line-height: 1.75;
+  }
+  .problem-tag {
+    display: inline-block;
+    margin-top: 18px;
+    padding: 4px 10px;
+    background: rgba(255,107,53,.1);
+    color: var(--warn);
+    border-radius: 6px;
+    font-size: 12px; font-weight: 600;
+  }
+  @media (max-width: 860px) {
+    .problem-grid { grid-template-columns: 1fr; }
+  }
 
-    /* ── AVATAR ── */
-    .av {
-      border-radius: 50%;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 800;
-      color: white;
-      flex-shrink: 0;
-      font-size: 13px;
-      width: 32px;
-      height: 32px;
-    }
-    .av-sm { width: 26px; height: 26px; font-size: 11px; }
-    .av-lg { width: 44px; height: 44px; font-size: 16px; }
+  /* ===== Concept section ===== */
+  .concept {
+    background:
+      linear-gradient(180deg, #071824 0%, #0B2A34 100%);
+    color: white;
+    position: relative;
+    overflow: hidden;
+  }
+  .concept::before {
+    content: "";
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse at 80% 20%, rgba(0,191,166,.15), transparent 50%),
+      radial-gradient(ellipse at 10% 80%, rgba(107,217,96,.12), transparent 50%);
+    pointer-events: none;
+  }
+  .concept .section-head { position: relative; }
+  .concept .section-label { color: #6BD960; }
+  .concept .section-title { color: white; }
+  .concept-quote {
+    font-family: "Noto Sans JP", sans-serif;
+    text-align: center;
+    font-size: clamp(32px, 5vw, 56px);
+    font-weight: 900;
+    letter-spacing: -.02em;
+    line-height: 1.4;
+    max-width: 860px;
+    margin: 0 auto 64px;
+    position: relative;
+  }
+  .concept-quote .strike {
+    text-decoration: line-through;
+    text-decoration-color: rgba(255,107,53,.6);
+    text-decoration-thickness: 3px;
+    color: rgba(255,255,255,.6);
+  }
+  .concept-quote .push {
+    background: var(--grad);
+    -webkit-background-clip: text; background-clip: text;
+    color: transparent;
+  }
+  .compare {
+    display: grid; grid-template-columns: 1fr auto 1fr;
+    gap: 32px; align-items: stretch;
+    max-width: 960px; margin: 0 auto;
+    position: relative;
+  }
+  .compare-col {
+    background: rgba(255,255,255,.04);
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: var(--radius);
+    padding: 32px;
+  }
+  .compare-col h4 {
+    font-size: 13px; font-weight: 700; letter-spacing: .2em;
+    text-transform: uppercase;
+    margin: 0 0 20px;
+    color: rgba(255,255,255,.55);
+  }
+  .compare-col.after h4 { color: #6BD960; }
+  .compare-col ul {
+    list-style: none; padding: 0; margin: 0;
+    display: flex; flex-direction: column; gap: 14px;
+  }
+  .compare-col li {
+    font-size: 15px;
+    line-height: 1.6;
+    padding-left: 28px;
+    position: relative;
+    color: rgba(255,255,255,.85);
+  }
+  .compare-col.before li::before {
+    content: "✕";
+    position: absolute; left: 0; top: 0;
+    color: rgba(255,107,53,.8);
+    font-weight: 700;
+  }
+  .compare-col.after li::before {
+    content: "✓";
+    position: absolute; left: 0; top: 0;
+    color: #6BD960;
+    font-weight: 700;
+  }
+  .compare-arrow {
+    display: grid; place-items: center;
+    color: var(--brand-1);
+    font-size: 28px;
+    font-weight: 300;
+  }
+  @media (max-width: 860px) {
+    .compare { grid-template-columns: 1fr; }
+    .compare-arrow { transform: rotate(90deg); padding: 8px 0; }
+  }
 
-    /* ── THROW BTN ── */
-    .throw-btn {
-      background: var(--primary);
-      color: white;
-      border: none;
-      padding: 8px 15px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 800;
-      cursor: pointer;
-      transition: all 0.15s;
-      font-family: inherit;
-      white-space: nowrap;
-    }
-    .throw-btn:active { transform: scale(0.93); background: var(--primary-dark); }
+  /* ===== Features ===== */
+  .features-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 28px;
+  }
+  .feature {
+    padding: 36px 32px;
+    border-radius: var(--radius);
+    background: white;
+    border: 1px solid var(--line);
+    transition: transform .2s, box-shadow .2s, border-color .2s;
+  }
+  .feature:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+    border-color: transparent;
+  }
+  .feature-icon {
+    width: 56px; height: 56px; border-radius: 16px;
+    background: var(--grad);
+    display: grid; place-items: center;
+    margin-bottom: 22px;
+    color: white;
+    box-shadow: 0 6px 18px rgba(0,191,166,.3);
+  }
+  .feature-icon svg { width: 28px; height: 28px; }
+  .feature-tag {
+    display: inline-block;
+    padding: 4px 10px;
+    background: rgba(0,191,166,.1);
+    color: var(--brand-dark);
+    border-radius: 6px;
+    font-size: 11px; font-weight: 700;
+    letter-spacing: .05em;
+    margin-bottom: 10px;
+  }
+  .feature h3 {
+    font-size: 22px; font-weight: 700;
+    margin: 0 0 12px;
+    letter-spacing: -.01em;
+    line-height: 1.4;
+  }
+  .feature p {
+    color: var(--ink-2);
+    font-size: 14.5px; line-height: 1.75;
+    margin: 0;
+  }
+  @media (max-width: 860px) {
+    .features-grid { grid-template-columns: 1fr; }
+  }
 
-    /* ── PLAYER SECTION (dashboard) ── */
-    .player-section {
-      background: white;
-      border-radius: var(--r);
-      padding: 14px;
-      margin-bottom: 10px;
-      box-shadow: var(--shadow);
-    }
-    .ps-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-    .ps-left { display: flex; align-items: center; gap: 10px; }
-    .ps-name { font-size: 16px; font-weight: 800; }
-    .ball-count {
-      background: var(--primary);
-      color: white;
-      font-size: 12px;
-      font-weight: 800;
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
+  /* ===== How it works (swipe) ===== */
+  .howto { background: var(--soft); }
+  .swipes {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 20px; max-width: 920px; margin: 0 auto;
+  }
+  .swipe {
+    background: white;
+    border-radius: var(--radius);
+    padding: 28px;
+    text-align: center;
+    border: 1px solid var(--line);
+  }
+  .swipe-arrow {
+    width: 48px; height: 48px; border-radius: 14px;
+    display: grid; place-items: center;
+    margin: 0 auto 16px;
+    font-size: 22px; font-weight: 900;
+    color: white;
+  }
+  .swipe.up .swipe-arrow { background: linear-gradient(135deg, #FFB743, #FF6B35); }
+  .swipe.right .swipe-arrow { background: var(--grad); }
+  .swipe.left .swipe-arrow { background: linear-gradient(135deg, #FF6B6B, #E03131); }
+  .swipe h4 {
+    font-size: 15px;
+    font-weight: 700;
+    margin: 0 0 6px;
+  }
+  .swipe-action {
+    font-size: 22px; font-weight: 900;
+    margin: 4px 0 10px;
+    letter-spacing: -.01em;
+  }
+  .swipe.up .swipe-action { color: #FF6B35; }
+  .swipe.right .swipe-action { color: var(--brand-dark); }
+  .swipe.left .swipe-action { color: #E03131; }
+  .swipe p {
+    font-size: 13px; color: var(--muted);
+    margin: 0;
+  }
+  @media (max-width: 720px) {
+    .swipes { grid-template-columns: 1fr; }
+  }
 
-    /* ── FILTER TABS ── */
-    .filter-tabs {
-      display: flex;
-      gap: 7px;
-      overflow-x: auto;
-      padding-bottom: 2px;
-      margin-bottom: 14px;
-      -webkit-overflow-scrolling: touch;
-      scrollbar-width: none;
-    }
-    .filter-tabs::-webkit-scrollbar { display: none; }
-    .ftab {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      padding: 8px 14px;
-      border-radius: 20px;
-      border: 2px solid var(--border);
-      background: white;
-      font-size: 12px;
-      font-weight: 700;
-      cursor: pointer;
-      white-space: nowrap;
-      transition: all 0.15s;
-      font-family: inherit;
-      color: var(--text-light);
-    }
-    .ftab.active { background: var(--primary); border-color: var(--primary); color: white; }
-    .ftab .cnt { background: rgba(255,255,255,0.3); border-radius: 10px; padding: 0 6px; font-size: 10px; }
-    .ftab:not(.active) .cnt { background: var(--bg); color: var(--text-light); }
-    .ftab-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  /* ===== Flow ===== */
+  .flow-steps {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 24px; position: relative;
+  }
+  .flow-step {
+    background: white;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 28px 24px;
+    position: relative;
+  }
+  .flow-num {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: var(--grad);
+    color: white;
+    display: grid; place-items: center;
+    font-weight: 800;
+    font-size: 15px;
+    margin-bottom: 18px;
+    box-shadow: 0 4px 12px rgba(0,191,166,.3);
+  }
+  .flow-role {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    color: var(--brand-dark);
+    margin-bottom: 6px;
+  }
+  .flow-step h4 {
+    font-size: 17px;
+    font-weight: 700;
+    margin: 0 0 10px;
+    letter-spacing: -.01em;
+  }
+  .flow-step p {
+    font-size: 13.5px;
+    color: var(--ink-2);
+    margin: 0;
+    line-height: 1.7;
+  }
+  @media (max-width: 860px) {
+    .flow-steps { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 520px) {
+    .flow-steps { grid-template-columns: 1fr; }
+  }
 
-    /* ── MODAL ── */
-    #modal-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(15,20,40,0.55);
-      z-index: 200;
-      display: flex;
-      align-items: flex-end;
-      justify-content: center;
-      backdrop-filter: blur(3px);
-    }
-    #modal-overlay.hidden { display: none; }
-    .modal-sheet {
-      background: white;
-      border-radius: 24px 24px 0 0;
-      width: 100%;
-      max-width: 480px;
-      max-height: 92dvh;
-      overflow-y: auto;
-      padding: 0 16px max(20px, env(safe-area-inset-bottom));
-      animation: slideUp 0.3s cubic-bezier(0.32, 0.72, 0, 1);
-      overscroll-behavior: contain;
-    }
-    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-    .modal-handle { width: 36px; height: 4px; background: var(--border); border-radius: 2px; margin: 12px auto 16px; }
-    .modal-title { font-size: 20px; font-weight: 900; margin-bottom: 18px; }
+  /* ===== CTA ===== */
+  .cta {
+    background: linear-gradient(135deg, #00BFA6 0%, #6BD960 100%);
+    padding: 96px 0;
+    text-align: center;
+    color: white;
+    position: relative;
+    overflow: hidden;
+  }
+  .cta::before {
+    content: "";
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(circle at 20% 50%, rgba(255,255,255,.15), transparent 40%),
+      radial-gradient(circle at 80% 50%, rgba(255,255,255,.1), transparent 40%);
+  }
+  .cta-inner { position: relative; }
+  .cta h2 {
+    font-family: "Noto Sans JP", sans-serif;
+    font-size: clamp(28px, 4vw, 42px);
+    font-weight: 900;
+    line-height: 1.4;
+    letter-spacing: -.02em;
+    margin: 0 0 16px;
+  }
+  .cta p {
+    font-size: 16px;
+    opacity: .95;
+    max-width: 560px;
+    margin: 0 auto 36px;
+    line-height: 1.7;
+  }
+  .cta .btn-primary {
+    background: white;
+    color: var(--brand-dark);
+    box-shadow: 0 8px 24px rgba(0,0,0,.15);
+  }
+  .cta .btn-primary:hover {
+    box-shadow: 0 12px 32px rgba(0,0,0,.2);
+  }
+  .cta-contact {
+    margin-top: 40px;
+    display: inline-flex; flex-direction: column; align-items: center;
+    gap: 6px;
+    padding: 20px 32px;
+    background: rgba(255,255,255,.12);
+    border: 1px solid rgba(255,255,255,.2);
+    border-radius: var(--radius);
+    backdrop-filter: blur(8px);
+    font-size: 14px;
+  }
+  .cta-contact .label {
+    font-size: 12px;
+    opacity: .8;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+  }
+  .cta-contact .info {
+    font-size: 15px;
+    font-weight: 500;
+    display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;
+  }
 
-    /* ── FORMS ── */
-    .fgroup { margin-bottom: 16px; }
-    .flabel {
-      display: block;
-      font-size: 11px;
-      font-weight: 800;
-      color: var(--text-light);
-      text-transform: uppercase;
-      letter-spacing: 0.7px;
-      margin-bottom: 7px;
-    }
-    .finput {
-      width: 100%;
-      padding: 12px 14px;
-      border: 2px solid var(--border);
-      border-radius: var(--r-sm);
-      font-size: 16px;
-      font-family: inherit;
-      transition: border-color 0.2s;
-      background: var(--bg);
-      color: var(--text);
-      outline: none;
-      -webkit-appearance: none;
-    }
-    .finput:focus { border-color: var(--primary); background: white; }
-    textarea.finput { resize: none; min-height: 80px; }
+  /* ===== Footer ===== */
+  footer {
+    background: var(--ink);
+    color: rgba(255,255,255,.7);
+    padding: 48px 0 32px;
+    font-size: 13px;
+  }
+  .foot-inner {
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 16px;
+  }
+  .foot-brand { color: white; font-weight: 700; font-size: 15px; }
+  .foot-copy { opacity: .6; font-size: 12px; }
 
-    /* Player selector */
-    .player-selector { display: grid; grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); gap: 8px; }
-    .p-opt {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 5px;
-      padding: 12px 6px 10px;
-      border: 2px solid var(--border);
-      border-radius: var(--r-sm);
-      cursor: pointer;
-      transition: all 0.15s;
-      background: white;
-      font-family: inherit;
-    }
-    .p-opt.sel { border-color: var(--primary); background: var(--primary-light); }
-    .p-opt-name { font-size: 11px; font-weight: 700; color: var(--text); text-align: center; line-height: 1.3; }
-
-    /* Priority selector */
-    .pri-row { display: flex; gap: 7px; }
-    .pri-opt {
-      flex: 1;
-      padding: 10px 4px;
-      border: 2px solid var(--border);
-      border-radius: var(--r-sm);
-      text-align: center;
-      cursor: pointer;
-      font-size: 12px;
-      font-weight: 800;
-      transition: all 0.15s;
-      background: white;
-      font-family: inherit;
-      color: var(--text-light);
-    }
-    .pri-opt.sel.high   { border-color: var(--danger);  background: #FEE2E2; color: var(--danger); }
-    .pri-opt.sel.medium { border-color: #D97706; background: #FEF3C7; color: #D97706; }
-    .pri-opt.sel.low    { border-color: var(--success); background: #DCFCE7; color: var(--success); }
-
-    /* Color picker */
-    .color-row { display: flex; gap: 8px; flex-wrap: wrap; }
-    .cswatch {
-      width: 34px;
-      height: 34px;
-      border-radius: 50%;
-      border: 3px solid transparent;
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-    .cswatch.sel { border-color: var(--text); transform: scale(1.18); box-shadow: 0 0 0 2px white inset; }
-
-    /* Submit / secondary buttons */
-    .btn-main {
-      width: 100%;
-      padding: 15px;
-      background: linear-gradient(135deg, #FF6B35, #FF8C42);
-      color: white;
-      border: none;
-      border-radius: var(--r);
-      font-size: 16px;
-      font-weight: 900;
-      cursor: pointer;
-      transition: all 0.15s;
-      font-family: inherit;
-      margin-top: 6px;
-      box-shadow: 0 4px 16px rgba(255,107,53,0.38);
-    }
-    .btn-main:active { transform: scale(0.98); }
-    .btn-main:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
-    .btn-main.green { background: linear-gradient(135deg, #27AE60, #229954); box-shadow: 0 4px 16px rgba(39,174,96,0.35); }
-    .btn-main.red { background: linear-gradient(135deg, #E74C3C, #C0392B); box-shadow: 0 4px 16px rgba(231,76,60,0.3); }
-    .btn-sub {
-      width: 100%;
-      padding: 13px;
-      background: var(--bg);
-      color: var(--text);
-      border: none;
-      border-radius: var(--r);
-      font-size: 14px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.15s;
-      font-family: inherit;
-      margin-top: 6px;
-    }
-    .btn-sub.danger { background: #FEE2E2; color: var(--danger); }
-
-    /* ── DETAIL VIEW ── */
-    .detail-hero {
-      background: linear-gradient(135deg, #FF6B35 0%, #FF8C42 100%);
-      padding: 14px;
-      color: white;
-      margin: -14px -14px 14px;
-    }
-    .detail-hero.urg  { background: linear-gradient(135deg, #E74C3C, #C0392B); }
-    .detail-hero.done { background: linear-gradient(135deg, #27AE60, #229954); }
-    .back-btn {
-      display: flex;
-      align-items: center;
-      gap: 3px;
-      color: rgba(255,255,255,0.88);
-      background: none;
-      border: none;
-      font-size: 14px;
-      font-weight: 700;
-      cursor: pointer;
-      margin-bottom: 10px;
-      font-family: inherit;
-      padding: 0;
-    }
-    .detail-title { font-size: 22px; font-weight: 900; line-height: 1.3; margin-bottom: 10px; }
-    .hero-badges { display: flex; gap: 7px; flex-wrap: wrap; align-items: center; }
-    .hero-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      padding: 4px 10px;
-      border-radius: 12px;
-      background: rgba(255,255,255,0.2);
-      font-size: 12px;
-      font-weight: 700;
-      color: white;
-    }
-
-    /* Info card */
-    .info-card {
-      background: white;
-      border-radius: var(--r);
-      padding: 14px;
-      margin-bottom: 10px;
-      box-shadow: var(--shadow);
-    }
-    .info-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 8px 0;
-      border-bottom: 1px solid var(--border);
-    }
-    .info-row:last-child { border-bottom: none; padding-bottom: 0; }
-    .info-row:first-child { padding-top: 0; }
-    .info-key { font-size: 11px; font-weight: 800; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px; }
-    .info-val { font-size: 14px; font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 6px; }
-    .info-val.muted { color: var(--text-light); font-weight: 400; font-size: 13px; }
-
-    /* ── TIMELINE ── */
-    .timeline { position: relative; padding-left: 26px; }
-    .timeline::before {
-      content: '';
-      position: absolute;
-      left: 12px;
-      top: 6px;
-      bottom: 6px;
-      width: 2px;
-      background: var(--border);
-    }
-    .tl-item { position: relative; margin-bottom: 14px; }
-    .tl-dot {
-      position: absolute;
-      left: -21px;
-      top: 3px;
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      background: var(--primary);
-      border: 2.5px solid white;
-      box-shadow: 0 0 0 2px var(--primary);
-    }
-    .tl-dot.done-dot { background: var(--success); box-shadow: 0 0 0 2px var(--success); }
-    .tl-dot.create-dot { background: #3498DB; box-shadow: 0 0 0 2px #3498DB; }
-    .tl-body { background: white; border-radius: var(--r-sm); padding: 10px 12px; box-shadow: var(--shadow); }
-    .tl-head { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-bottom: 3px; }
-    .tl-action { font-size: 12px; font-weight: 700; flex: 1; }
-    .tl-time { font-size: 10px; color: var(--text-light); white-space: nowrap; }
-    .tl-note { font-size: 12px; color: var(--text-light); margin-top: 3px; }
-
-    /* ── MEMBER CARD ── */
-    .member-card {
-      background: white;
-      border-radius: var(--r);
-      padding: 14px;
-      margin-bottom: 10px;
-      box-shadow: var(--shadow);
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .mc-info { flex: 1; }
-    .mc-name { font-size: 15px; font-weight: 800; }
-    .mc-stat { font-size: 12px; color: var(--text-light); margin-top: 2px; }
-    .mc-actions { display: flex; gap: 6px; }
-    .icon-btn {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      border: none;
-      background: var(--bg);
-      cursor: pointer;
-      font-size: 15px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.15s;
-    }
-    .icon-btn:active { transform: scale(0.9); }
-    .icon-btn.del { background: #FEE2E2; }
-
-    /* ── EMPTY STATE ── */
-    .empty { text-align: center; padding: 40px 16px; }
-    .empty-icon { font-size: 64px; margin-bottom: 14px; }
-    .empty-title { font-size: 20px; font-weight: 900; margin-bottom: 8px; }
-    .empty-text { color: var(--text-light); font-size: 14px; line-height: 1.7; margin-bottom: 20px; }
-
-    /* ── THROW ANIMATION ── */
-    #throw-anim {
-      position: fixed;
-      inset: 0;
-      z-index: 1000;
-      pointer-events: none;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: rgba(255,107,53,0.08);
-    }
-    #throw-anim.hidden { display: none; }
-    .ball-fly { font-size: 64px; animation: ballFly 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
-    @keyframes ballFly {
-      0%   { transform: scale(0.3) rotate(-720deg); opacity: 0; }
-      40%  { transform: scale(1.4) rotate(-120deg); opacity: 1; }
-      100% { transform: scale(0.2) rotate(180deg) translateY(-120px); opacity: 0; }
-    }
-
-    /* ── DONE ANIMATION ── */
-    .done-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(39,174,96,0.92);
-      z-index: 600;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      animation: fadeAway 0.4s 1.6s forwards;
-    }
-    @keyframes fadeAway { to { opacity: 0; pointer-events: none; } }
-    .done-icon { font-size: 80px; animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-    .done-text { font-size: 26px; font-weight: 900; margin-top: 14px; }
-    .done-sub  { font-size: 14px; opacity: 0.85; margin-top: 6px; }
-    @keyframes popIn { from { transform: scale(0); } to { transform: scale(1); } }
-
-    /* ── TOAST ── */
-    #toast {
-      position: fixed;
-      bottom: 96px;
-      left: 50%;
-      transform: translateX(-50%) translateY(16px);
-      background: #1A202C;
-      color: white;
-      padding: 11px 22px;
-      border-radius: 24px;
-      font-size: 13px;
-      font-weight: 700;
-      opacity: 0;
-      transition: all 0.25s;
-      z-index: 600;
-      white-space: nowrap;
-      pointer-events: none;
-      max-width: calc(100% - 32px);
-      text-align: center;
-    }
-    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-
-    /* ── PULSE ANIM ── */
-    .pulse { animation: pulse 1.4s ease-in-out infinite; }
-    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.55; } }
-
-    /* ── OVERDUE GLOW ── */
-    .ball-card.urgent { box-shadow: 0 2px 12px rgba(231,76,60,0.18); }
-
-    /* ── DIVIDER ── */
-    .divider { height: 1px; background: var(--border); margin: 14px 0; }
-
-    /* ── SPINNER ── */
-    .spinner-wrap { display: flex; justify-content: center; padding: 60px 0; }
-    .spinner {
-      width: 40px;
-      height: 40px;
-      border: 4px solid var(--border);
-      border-top-color: var(--primary);
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    /* ── SETUP SCREEN ── */
-    #setup-screen {
-      position: fixed;
-      inset: 0;
-      background: white;
-      z-index: 500;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    #setup-screen.hidden { display: none; }
-    .setup-inner {
-      width: 100%;
-      max-width: 480px;
-      padding: 32px 20px 40px;
-    }
-    .setup-logo {
-      font-size: 32px;
-      font-weight: 900;
-      text-align: center;
-      color: var(--primary);
-      margin-bottom: 6px;
-    }
-    .setup-tagline {
-      text-align: center;
-      font-size: 13px;
-      color: var(--text-light);
-      margin-bottom: 28px;
-    }
-    .setup-step {
-      background: var(--bg);
-      border-radius: var(--r);
-      padding: 16px;
-      margin-bottom: 14px;
-    }
-    .setup-step-title {
-      font-size: 11px;
-      font-weight: 800;
-      color: var(--text-light);
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-      margin-bottom: 12px;
-    }
-    .setup-link {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      color: var(--primary);
-      font-size: 13px;
-      font-weight: 700;
-      text-decoration: none;
-      margin-bottom: 10px;
-    }
-    .setup-hint {
-      font-size: 12px;
-      color: var(--text-light);
-      line-height: 1.7;
-      margin-bottom: 10px;
-    }
-    .setup-hint ol { padding-left: 16px; }
-    .setup-hint li { margin-bottom: 2px; }
-    .room-row { display: flex; gap: 8px; align-items: stretch; }
-    .room-row .finput {
-      flex: 1;
-      font-size: 22px;
-      font-weight: 900;
-      text-align: center;
-      letter-spacing: 4px;
-      text-transform: uppercase;
-    }
-    .btn-gen {
-      padding: 0 14px;
-      background: white;
-      border: 2px solid var(--border);
-      border-radius: var(--r-sm);
-      font-size: 22px;
-      cursor: pointer;
-      transition: all 0.15s;
-      flex-shrink: 0;
-    }
-    .btn-gen:active { transform: scale(0.92); }
-    .setup-divider {
-      text-align: center;
-      font-size: 12px;
-      color: var(--text-light);
-      margin: 6px 0;
-    }
-    .setup-rules {
-      background: #F8FAFC;
-      border: 1px solid var(--border);
-      border-radius: var(--r-sm);
-      padding: 12px;
-      margin-top: 10px;
-    }
-    .setup-rules-title {
-      font-size: 11px;
-      font-weight: 800;
-      color: var(--text-light);
-      margin-bottom: 8px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-    .setup-rules pre {
-      font-size: 10px;
-      color: #4A5568;
-      white-space: pre-wrap;
-      word-break: break-all;
-      line-height: 1.5;
-      font-family: 'SF Mono', 'Consolas', monospace;
-    }
-
-    /* ── QR CARD ── */
-    .qr-card {
-      background: white;
-      border-radius: var(--r);
-      padding: 16px 14px 14px;
-      margin-bottom: 10px;
-      box-shadow: var(--shadow);
-      text-align: center;
-    }
-    .qr-card-title {
-      font-size: 12px;
-      font-weight: 800;
-      color: var(--text-light);
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-      margin-bottom: 12px;
-    }
-    .qr-wrap {
-      display: flex;
-      justify-content: center;
-      margin-bottom: 10px;
-    }
-    .qr-wrap img, .qr-wrap canvas {
-      border-radius: 8px;
-      border: 1px solid var(--border);
-    }
-    .qr-room-code {
-      font-size: 13px;
-      color: var(--text-light);
-      margin-bottom: 10px;
-    }
-    .qr-room-code strong {
-      color: var(--text);
-      letter-spacing: 3px;
-      font-size: 17px;
-      font-weight: 900;
-    }
-
-    /* ── SHARE BOX ── */
-    .share-box {
-      background: #EFF6FF;
-      border: 1.5px solid #BFDBFE;
-      border-radius: var(--r);
-      padding: 12px 14px;
-      margin-bottom: 10px;
-    }
-    .share-box-label {
-      font-size: 11px;
-      font-weight: 800;
-      color: #2563EB;
-      text-transform: uppercase;
-      letter-spacing: 0.7px;
-      margin-bottom: 8px;
-    }
-    .share-url-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .share-url-text {
-      flex: 1;
-      font-size: 11px;
-      color: #1D4ED8;
-      font-family: 'SF Mono', 'Consolas', monospace;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      background: white;
-      padding: 8px 10px;
-      border-radius: 8px;
-      border: 1px solid #BFDBFE;
-      min-width: 0;
-    }
-    .share-copy-btn {
-      flex-shrink: 0;
-      padding: 8px 14px;
-      background: #2563EB;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-size: 13px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.15s;
-      font-family: inherit;
-    }
-    .share-copy-btn:active { transform: scale(0.93); background: #1D4ED8; }
-  </style>
+  /* Scroll reveal */
+  .reveal { opacity: 0; transform: translateY(16px); transition: opacity .7s ease, transform .7s ease; }
+  .reveal.in { opacity: 1; transform: translateY(0); }
+</style>
 </head>
 <body>
-<div id="app">
 
-  <!-- HEADER -->
-  <header id="app-header">
-    <div class="header-row">
-      <div>
-        <div class="logo">🏐 どっち!?ボール</div>
-        <span class="logo-sub">ボールは今、誰にある？</span>
-        <div id="conn-badge">
-          <div class="conn-dot connecting" id="conn-dot"></div>
-          <span id="conn-text">接続中...</span>
-        </div>
-        <div id="room-display" onclick="copyRoomCode()" title="タップでコピー"></div>
-      </div>
-      <button class="btn-throw" id="btn-new">＋ 投げる</button>
-    </div>
-  </header>
-
-  <!-- MAIN -->
-  <main id="main-content"></main>
-
-  <!-- BOTTOM NAV -->
-  <nav id="bottom-nav">
-    <button class="nav-item active" data-tab="dashboard">
-      <span class="nav-icon">🏠</span>
-      <span class="nav-label">ホーム</span>
-    </button>
-    <button class="nav-item" data-tab="balls">
-      <span class="nav-icon">🏐</span>
-      <span class="nav-label">ボール一覧</span>
-    </button>
-    <button class="nav-item" data-tab="members">
-      <span class="nav-icon">👥</span>
-      <span class="nav-label">メンバー</span>
-    </button>
-  </nav>
-
-</div>
-
-<!-- SETUP SCREEN -->
-<div id="setup-screen">
-  <div class="setup-inner">
-    <div class="setup-logo">🏐 どっち!?ボール</div>
-    <div class="setup-tagline">チームでリアルタイム共有</div>
-
-    <div class="setup-step">
-      <div class="setup-step-title">ルームコードを入力</div>
-      <div class="setup-hint">同じコードを入力すると同じデータを共有できます</div>
-      <div class="room-row">
-        <input class="finput" id="setup-room" type="text" placeholder="ABC123"
-          maxlength="10" autocomplete="off" autocapitalize="characters"
-          oninput="this.value=this.value.toUpperCase()">
-        <button class="btn-gen" onclick="setupGenRoom()" title="ランダム生成">🎲</button>
-      </div>
-    </div>
-
-    <button class="btn-main" onclick="doSetup()">🏐 はじめる！</button>
-    <div class="setup-divider">─ または ─</div>
-    <button class="btn-sub" onclick="useLocalMode()">ローカルモードで使う（共有なし）</button>
+<!-- ===== Navigation ===== -->
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a href="#" class="brand">
+      <span class="brand-mark">⚽</span>
+      <span class="brand-name">どっちボール</span>
+    </a>
+    <nav class="nav-links">
+      <a href="#problem">課題</a>
+      <a href="#concept">コンセプト</a>
+      <a href="#features">特徴</a>
+      <a href="#flow">導入フロー</a>
+      <a href="#contact" class="btn btn-primary" style="padding:10px 18px; font-size:13px;">無料で試す</a>
+    </nav>
   </div>
-</div>
+</header>
 
-<!-- MODAL -->
-<div id="modal-overlay" class="hidden">
-  <div class="modal-sheet" id="modal-content"></div>
-</div>
+<!-- ===== Hero ===== -->
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      <span class="eyebrow">CONCEPT PROTOTYPE — 2026</span>
+      <h1 class="hero-title">
+        仕事のボールを、<br />
+        <span class="accent">迷わず次の人に</span>渡す。
+      </h1>
+      <p class="hero-lead">
+        「今、ボールは誰にある？」がひと目でわかる、モバイルファーストのプロジェクト推進ツール。<br />
+        URLをタップするだけで、登録不要。仕事の押し付け合いと抜け漏れをゼロにします。
+      </p>
+      <div class="hero-cta">
+        <a href="#contact" class="btn btn-primary btn-lg">無料トライアルを試す →</a>
+        <a href="#concept" class="btn btn-ghost btn-lg">コンセプトを見る</a>
+      </div>
+      <div class="hero-note">
+        <span><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l5 5L20 7"/></svg>アカウント登録不要</span>
+        <span><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l5 5L20 7"/></svg>スマホだけで完結</span>
+        <span><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l5 5L20 7"/></svg>社外パートナーも参加OK</span>
+      </div>
+    </div>
 
-<!-- THROW ANIMATION -->
-<div id="throw-anim" class="hidden">
-  <div class="ball-fly">🏐</div>
-</div>
+    <div class="hero-visual">
+      <div class="blob blob-1"></div>
+      <div class="blob blob-2"></div>
+      <div class="phone">
+        <div class="phone-screen">
+          <div class="phone-notch"></div>
+          <svg class="ball-icon" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" fill="white">
+            <circle cx="32" cy="32" r="28" fill="white" stroke="#0B1B2B" stroke-width="2.5"/>
+            <polygon points="32,18 40,24 37,34 27,34 24,24" fill="#0B1B2B"/>
+            <path d="M32 6 L32 18 M60 32 L46 30 M49 52 L40 44 M15 52 L24 44 M4 32 L18 30" stroke="#0B1B2B" stroke-width="2" fill="none"/>
+          </svg>
+          <h2 class="phone-title">どっちボール</h2>
+          <p class="phone-sub">「今、ボールは誰にある？」<br/>がひと目でわかる<br/>チームの推進ツール</p>
+          <div class="phone-card">
+            <div class="phone-card-icon">🔗</div>
+            <div>URLを送るだけ<br/>アカウント登録は不要</div>
+          </div>
+          <div class="phone-card">
+            <div class="phone-card-icon">📱</div>
+            <div>スマホだけで完結<br/>スワイプで簡単操作</div>
+          </div>
+          <div class="phone-card">
+            <div class="phone-card-icon">🤖</div>
+            <div>AIがやることリストを<br/>自動で作成</div>
+          </div>
+          <div class="phone-btn">はじめる →</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
-<!-- TOAST -->
-<div id="toast"></div>
+<!-- ===== Problem ===== -->
+<section class="problem" id="problem">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="section-label">Problem</div>
+      <h2 class="section-title">なぜ、私たちの仕事は<br/>いつもギリギリになるのか？</h2>
+      <p class="section-lead">優秀なメンバーを集め、最初にしっかり計画も立てたはず。それなのに、期限の直前になって「誰かがやると思っていた」という声が飛び交う——。根本原因は、ツールでも人材でもなく「仕組み」にあります。</p>
+    </div>
 
-<!-- Firebase SDK (Compat) -->
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
-<!-- QR Code -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<!-- EmailJS -->
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <p class="problem-quote reveal">
+      「誰が<span class="mark">ボールを持っているのか</span>、<br/>誰もわからない」—— これが最大の問題です。
+    </p>
+
+    <div class="problem-grid">
+      <div class="problem-card reveal">
+        <div class="problem-num">01</div>
+        <h3>ボールが迷子になる</h3>
+        <p>チャットやメールで「お願いします！」と投げたタスクが、いつの間にか誰の責任かわからなくなる。全員が「誰かがやるだろう」と傍観者になる。</p>
+        <span class="problem-tag">責任の所在が不明確</span>
+      </div>
+      <div class="problem-card reveal">
+        <div class="problem-num">02</div>
+        <h3>「やること」が曖昧</h3>
+        <p>「撮影の準備をしておいて」だけでは誰も動けない。具体的な行動に分解されていないため、期限直前に「あれ忘れてた！」が発生する。</p>
+        <span class="problem-tag">スコープが大雑把すぎる</span>
+      </div>
+      <div class="problem-card reveal">
+        <div class="problem-num">03</div>
+        <h3>ツールは誰も見ない</h3>
+        <p>高機能なシステムは画面が複雑でログインが面倒。ITに不慣れなメンバーや社外パートナーは、次第にアクセスしなくなる。</p>
+        <span class="problem-tag">現場に定着しない</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Concept ===== -->
+<section class="concept" id="concept">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="section-label">Concept</div>
+      <h2 class="section-title" style="color:white;">発想の転換</h2>
+    </div>
+
+    <p class="concept-quote reveal">
+      プロジェクトは<br/>
+      <span class="strike">「管理」するな</span>、<br/>
+      <span class="push">前に進めろ。</span>
+    </p>
+
+    <div class="compare">
+      <div class="compare-col before reveal">
+        <h4>これまで</h4>
+        <ul>
+          <li>巨大なガントチャートの維持</li>
+          <li>全員の進捗を監視・催促</li>
+          <li>複雑なログインと操作</li>
+          <li>現場が使いこなせない</li>
+          <li>リソースや生産性を細かく管理</li>
+        </ul>
+      </div>
+      <div class="compare-arrow">→</div>
+      <div class="compare-col after reveal">
+        <h4>これから</h4>
+        <ul>
+          <li>「今、誰の番か」だけを見る</li>
+          <li>迷わず目の前の仕事を終わらせる</li>
+          <li>URLタップで即アクセス可能</li>
+          <li>社外パートナーも簡単に参加</li>
+          <li>期日までに完了したかどうかだけ</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Features ===== -->
+<section id="features">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="section-label">Features</div>
+      <h2 class="section-title">どっちボールの3つの特徴</h2>
+      <p class="section-lead">複雑な管理ではなく、「今、誰の番か」を明確にすることに特化。現場が迷わず仕事を進めるための、全く新しいツールです。</p>
+    </div>
+
+    <div class="features-grid">
+      <div class="feature reveal">
+        <div class="feature-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+          </svg>
+        </div>
+        <span class="feature-tag">FEATURE 01</span>
+        <h3>アクセスの壁ゼロ</h3>
+        <p>スマホに届いたURLを開くだけ。アプリインストールも面倒な登録も一切不要。社外パートナーや普段ITツールを使わないメンバーも、迷わずその場で参加できます。</p>
+      </div>
+
+      <div class="feature reveal">
+        <div class="feature-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 11l3 3L22 4"/>
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+          </svg>
+        </div>
+        <span class="feature-tag">FEATURE 02</span>
+        <h3>抜け漏れゼロ</h3>
+        <p>大雑把な依頼もAIが自動的に具体的な行動（子タスク）に分解してリスト化。「次に何をすべきか」が瞬時にわかり、担当者は迷わず手を動かせます。</p>
+      </div>
+
+      <div class="feature reveal">
+        <div class="feature-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M12 8v4l3 3"/>
+          </svg>
+        </div>
+        <span class="feature-tag">FEATURE 03</span>
+        <h3>報告がシンプル</h3>
+        <p>全チェックが終わったら「ボールを返す」をタップするだけ。次の担当者に自動で通知が届き、リーダーは滞留状況をリアルタイムで把握できます。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== How it works ===== -->
+<section class="howto">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="section-label">How it works</div>
+      <h2 class="section-title">操作はスワイプ3つだけ。</h2>
+      <p class="section-lead">届いたボールにすべきことは、たった3パターン。ゲーム感覚で、ストレスなく報告できます。</p>
+    </div>
+
+    <div class="swipes">
+      <div class="swipe up reveal">
+        <div class="swipe-arrow">↑</div>
+        <h4>上にスワイプ</h4>
+        <div class="swipe-action">ゴール！</div>
+        <p>完了宣言。プロジェクトを前に進めます（GM専用）。</p>
+      </div>
+      <div class="swipe right reveal">
+        <div class="swipe-arrow">→</div>
+        <h4>右にスワイプ</h4>
+        <div class="swipe-action">返す</div>
+        <p>自分の作業が終わったら、次の担当者へパス。</p>
+      </div>
+      <div class="swipe left reveal">
+        <div class="swipe-arrow">←</div>
+        <h4>左にスワイプ</h4>
+        <div class="swipe-action">SOS</div>
+        <p>困ったら助けを求める。チームにすぐ通知が届きます。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Flow ===== -->
+<section id="flow">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="section-label">Flow</div>
+      <h2 class="section-title">導入は4ステップ、<br/>最短15分でキックオフ。</h2>
+      <p class="section-lead">サッカーの試合に出るような感覚で、プロジェクトを立ち上げられます。</p>
+    </div>
+
+    <div class="flow-steps">
+      <div class="flow-step reveal">
+        <div class="flow-num">1</div>
+        <div class="flow-role">選手になる</div>
+        <h4>アカウント登録</h4>
+        <p>URLから参加。メールアドレスひとつでOK。社外メンバーもすぐ合流できます。</p>
+      </div>
+      <div class="flow-step reveal">
+        <div class="flow-num">2</div>
+        <div class="flow-role">会場を作る</div>
+        <h4>プロジェクトを用意</h4>
+        <p>ゴール（目的）とボール（タスク）を設定。AIが子タスクまで自動で分解します。</p>
+      </div>
+      <div class="flow-step reveal">
+        <div class="flow-num">3</div>
+        <div class="flow-role">プレイヤーを呼ぶ</div>
+        <h4>メンバーを招待</h4>
+        <p>ルームに招待URLを送るだけ。ログインも設定も必要ありません。</p>
+      </div>
+      <div class="flow-step reveal">
+        <div class="flow-num">4</div>
+        <div class="flow-role">キックオフ！</div>
+        <h4>ボールをパス</h4>
+        <p>最初の担当者にボールをパスしたら、いよいよ試合開始。チームで前に進めましょう。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CTA ===== -->
+<section class="cta" id="contact">
+  <div class="wrap cta-inner">
+    <h2>チーム全員で、<br/>プロジェクトを前に進めましょう。</h2>
+    <p>まずは小規模なPoC（概念実証）から。費用・工数をかけずに効果を体験いただけます。現在コンセプト段階のため、ご興味のある企業様を募集中です。</p>
+    <a href="mailto:ootoshi@phonogram.co.jp" class="btn btn-primary btn-lg">無料トライアルを相談する</a>
+
+    <div class="cta-contact">
+      <span class="label">Contact</span>
+      <div style="font-weight:700; font-size:16px;">営業担当：大年（おおとし）</div>
+      <div class="info">
+        <span>📞 080-4592-6548</span>
+        <span>✉️ ootoshi@phonogram.co.jp</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Footer ===== -->
+<footer>
+  <div class="wrap foot-inner">
+    <div class="foot-brand">⚽ どっちボール</div>
+    <div class="foot-copy">© 2026 Phonogram Inc. All rights reserved.</div>
+  </div>
+</footer>
 
 <script>
-'use strict';
-// ────────────────────────────────────────
-// CONSTANTS
-// ────────────────────────────────────────
-const SETUP_KEY   = 'dotchiball_setup_v1';
-const STORAGE_KEY = 'dotchiball_v2'; // local mode only
-const COLORS = ['#3B82F6','#EF4444','#10B981','#F59E0B','#8B5CF6','#EC4899','#14B8A6','#F97316'];
-const EMAILJS_PUBLIC_KEY  = 'fMe4d2TI7qP8pacfn';
-const EMAILJS_SERVICE_ID  = 'service_3tnch6s';
-const EMAILJS_TEMPLATE_ID = 'template_cg18fl1';
-
-const EMBEDDED_CONFIG = {
-  apiKey: "AIzaSy-MUGIRDg4-8RtxTIYwIcc0Bw07oXI",
-  authDomain: "dotchiball.firebaseapp.com",
-  projectId: "dotchiball",
-  storageBucket: "dotchiball.firebasestorage.app",
-  messagingSenderId: "362102680084",
-  appId: "1:362102680084:web:eb4d6b848a79c93b119505"
-};
-
-// ────────────────────────────────────────
-// FIREBASE GLOBALS
-// ────────────────────────────────────────
-let db        = null;
-let roomCode  = null;
-let localMode = false;
-let loading   = false;
-let _loadedMembers = false;
-let _loadedBalls   = false;
-let _pendingBallId = null; // URLパラメータから取得したballId
-
-// ────────────────────────────────────────
-// STATE
-// ────────────────────────────────────────
-function defaultState() {
-  return { members: [], balls: [] };
-}
-let state = defaultState();
-
-// ────────────────────────────────────────
-// SETUP PERSISTENCE
-// ────────────────────────────────────────
-function loadSetup() {
-  try {
-    const raw = localStorage.getItem(SETUP_KEY);
-    if (raw) return JSON.parse(raw);
-  } catch(_) {}
-  return null;
-}
-
-function saveSetup(config, room) {
-  localStorage.setItem(SETUP_KEY, JSON.stringify({ config, roomCode: room }));
-}
-
-// ────────────────────────────────────────
-// LOCAL MODE PERSISTENCE
-// ────────────────────────────────────────
-function loadLocalState() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw);
-  } catch(_) {}
-  return defaultState();
-}
-
-function saveState() {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(_) {}
-}
-
-// ────────────────────────────────────────
-// VIEW STATE
-// ────────────────────────────────────────
-let curTab    = 'dashboard';
-let curBallId = null;
-let curFilter = 'all';
-
-// ────────────────────────────────────────
-// HELPERS
-// ────────────────────────────────────────
-const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
-const getMember  = id => state.members.find(m => m.id === id);
-const getBall    = id => state.balls.find(b => b.id === id);
-const activeBalls = () => state.balls.filter(b => b.status === 'active');
-const ballsByHolder = mid => activeBalls().filter(b => b.currentHolder === mid);
-
-function daysUntil(dateStr) {
-  if (!dateStr) return null;
-  const diff = (new Date(dateStr) - new Date()) / 86400000;
-  return Math.ceil(diff);
-}
-
-function urgency(ball) {
-  if (ball.status !== 'active') return 'done';
-  if (!ball.dueDate) return 'no-date';
-  const mins = minutesUntil(ball.dueDate);
-  if (mins < 0)    return 'urgent';
-  if (mins <= 2880) return 'urgent';   // 2日以内
-  if (mins <= 10080) return 'warning'; // 7日以内
-  return 'normal';
-}
-
-function minutesUntil(dateStr) {
-  if (!dateStr) return null;
-  return (new Date(dateStr) - new Date()) / 60000;
-}
-
-function fmtDue(dueDate) {
-  if (!dueDate) return '期限なし';
-  const mins = minutesUntil(dueDate);
-  if (mins < 0) {
-    const absMins = Math.abs(Math.round(mins));
-    if (absMins < 60) return `${absMins}分超過！`;
-    const absHours = Math.floor(absMins / 60);
-    if (absHours < 24) return `${absHours}時間超過！`;
-    return `${Math.floor(absHours / 24)}日超過！`;
-  }
-  if (mins <= 10)  return `あと${Math.round(mins)}分！`;
-  if (mins <= 60)  return `あと${Math.round(mins)}分`;
-  if (mins <= 1440) return `あと${Math.floor(mins/60)}時間`;
-  const days = Math.ceil(mins / 1440);
-  if (days <= 7) return `あと${days}日`;
-  const dt = new Date(dueDate);
-  return `${dt.getMonth()+1}/${dt.getDate()}まで`;
-}
-
-function fmtDate(dueDate) {
-  if (!dueDate) return '未設定';
-  const dt = new Date(dueDate);
-  const hasTime = dueDate.includes('T') && !dueDate.endsWith('T00:00');
-  const base = `${dt.getFullYear()}年${dt.getMonth()+1}月${dt.getDate()}日`;
-  if (!hasTime) return base;
-  return `${base} ${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`;
-}
-
-function fmtDT(iso) {
-  const d = new Date(iso);
-  return `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
-}
-
-const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-
-function getRoomInviteUrl() {
-  if (localMode || !roomCode) return null;
-  return window.location.origin + window.location.pathname + '?room=' + encodeURIComponent(roomCode);
-}
-
-function renderQRCard() {
-  if (localMode || !roomCode) return '';
-  return `<div class="qr-card">
-    <div class="qr-card-title">📱 このルームに招待</div>
-    <div class="qr-wrap" id="qr-code-wrap"></div>
-    <div class="qr-room-code">ルームコード: <strong>${esc(roomCode)}</strong></div>
-    <button class="share-copy-btn" style="width:100%" onclick="copyRoomInviteUrl()">🔗 招待URLをコピー</button>
-  </div>`;
-}
-
-function renderQR() {
-  const wrap = document.getElementById('qr-code-wrap');
-  if (!wrap || !roomCode || typeof QRCode === 'undefined') return;
-  wrap.innerHTML = '';
-  const url = getRoomInviteUrl();
-  new QRCode(wrap, { text: url, width: 140, height: 140, colorDark: '#1A202C', colorLight: '#ffffff' });
-}
-
-function copyRoomInviteUrl() {
-  const url = getRoomInviteUrl();
-  if (!url) return;
-  navigator.clipboard.writeText(url)
-    .then(() => toast('🔗 招待URLをコピーしました！'))
-    .catch(() => toast('🔗 ' + url));
-}
-
-function generateShareUrl(ballId) {
-  if (localMode || !roomCode) return null;
-  const base = window.location.origin + window.location.pathname;
-  return `${base}?room=${encodeURIComponent(roomCode)}&ball=${encodeURIComponent(ballId)}`;
-}
-
-function copyShareUrl(ballId) {
-  const url = generateShareUrl(ballId);
-  if (!url) return;
-  navigator.clipboard.writeText(url)
-    .then(() => toast('🔗 共有URLをコピーしました！'))
-    .catch(() => toast('🔗 ' + url));
-}
-
-function avHTML(member, size = '') {
-  const cls = 'av' + (size ? ` av-${size}` : '');
-  if (!member) return `<div class="${cls}" style="background:#A0AEC0">?</div>`;
-  const init = member.name.charAt(0);
-  return `<div class="${cls}" style="background:${member.color}">${init}</div>`;
-}
-
-function priLabel(p) {
-  return p === 'high' ? '🔥 急ぎ' : p === 'medium' ? '📌 普通' : '📎 低め';
-}
-
-function ballIcon(p) {
-  return p === 'high' ? '🔴' : p === 'medium' ? '🟡' : '🟢';
-}
-
-// ────────────────────────────────────────
-// FIREBASE SETUP
-// ────────────────────────────────────────
-function initFirebase(config, room) {
-  if (!firebase.apps.length) {
-    firebase.initializeApp(config);
-  }
-  db = firebase.firestore();
-  db.enablePersistence({ synchronizeTabs: true }).catch(() => {});
-  roomCode = room;
-  loading = true;
-  _loadedMembers = false;
-  _loadedBalls   = false;
-  setupListeners();
-  updateConnBadge(null);
-  showConnInfo();
-}
-
-function setupListeners() {
-  const room = db.collection('rooms').doc(roomCode);
-
-  room.collection('members').onSnapshot(snap => {
-    state.members = snap.docs.map(d => d.data());
-    _loadedMembers = true;
-    checkAllLoaded();
-    render();
-  }, err => {
-    console.error('members listener:', err);
-    updateConnBadge(false);
-  });
-
-  room.collection('balls').onSnapshot(snap => {
-    state.balls = snap.docs.map(d => d.data());
-    state.balls.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-    _loadedBalls = true;
-    checkAllLoaded();
-    render();
-  }, err => {
-    console.error('balls listener:', err);
-    updateConnBadge(false);
-  });
-}
-
-function checkAllLoaded() {
-  if (_loadedMembers && _loadedBalls && loading) {
-    loading = false;
-    updateConnBadge(true);
-    if (_pendingBallId) {
-      if (getBall(_pendingBallId)) curBallId = _pendingBallId;
-      _pendingBallId = null;
-    }
-  }
-}
-
-function updateConnBadge(connected) {
-  const badge = document.getElementById('conn-badge');
-  const dot   = document.getElementById('conn-dot');
-  const text  = document.getElementById('conn-text');
-  badge.style.display = 'flex';
-  if (connected === null) {
-    dot.className = 'conn-dot connecting';
-    text.textContent = '接続中...';
-  } else if (connected) {
-    dot.className = 'conn-dot';
-    text.textContent = '接続済み';
-  } else {
-    dot.className = 'conn-dot offline';
-    text.textContent = 'オフライン';
-  }
-}
-
-function showConnInfo() {
-  const rd = document.getElementById('room-display');
-  rd.style.display = 'block';
-  rd.textContent = `ルーム: ${roomCode}  (タップでコピー)`;
-}
-
-// ────────────────────────────────────────
-// SETUP SCREEN
-// ────────────────────────────────────────
-function showSetupScreen() {
-  document.getElementById('setup-screen').classList.remove('hidden');
-}
-
-function hideSetupScreen() {
-  document.getElementById('setup-screen').classList.add('hidden');
-}
-
-function setupGenRoom() {
-  document.getElementById('setup-room').value = generateRoomCode();
-}
-
-function generateRoomCode() {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  return Array.from({ length: 6 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
-}
-
-function parseFirebaseConfig(str) {
-  // まず普通のJSONとして試みる
-  try { return JSON.parse(str); } catch(_) {}
-  // Firebase consoleからコピーしたJS形式（キーに"なし）も対応
-  try {
-    const jsonStr = str.replace(/([{,][\s\n\r]*)([a-zA-Z_]\w*)\s*:/g, '$1"$2":');
-    return JSON.parse(jsonStr);
-  } catch(_) {}
-  return null;
-}
-
-function doSetup() {
-  const room = document.getElementById('setup-room').value.trim().toUpperCase();
-  if (!room) { toast('ルームコードを入力してください'); return; }
-
-  try {
-    saveSetup(EMBEDDED_CONFIG, room);
-    initFirebase(EMBEDDED_CONFIG, room);
-    const params = new URLSearchParams(window.location.search);
-    const urlRoom = params.get('room');
-    const urlBall = params.get('ball');
-    if (urlRoom === room && urlBall) _pendingBallId = urlBall;
-    hideSetupScreen();
-    render();
-  } catch(e) {
-    console.error(e);
-    toast('Firebase初期化に失敗しました: ' + (e.message || e));
-  }
-}
-
-function useLocalMode() {
-  localMode = true;
-  loading   = false;
-  state     = loadLocalState();
-  hideSetupScreen();
-  initDemo();
-  render();
-}
-
-function copyRoomCode() {
-  if (!roomCode) return;
-  navigator.clipboard.writeText(roomCode)
-    .then(() => toast(`📋 ルームコード「${roomCode}」をコピーしました`))
-    .catch(() => toast(`ルームコード: ${roomCode}`));
-}
-
-// ────────────────────────────────────────
-// FIRESTORE WRAPPERS
-// ────────────────────────────────────────
-function fsSet(col, doc) {
-  if (!db) return Promise.resolve();
-  return db.collection('rooms').doc(roomCode).collection(col).doc(doc.id).set(doc);
-}
-
-function fsDelete(col, id) {
-  if (!db) return Promise.resolve();
-  return db.collection('rooms').doc(roomCode).collection(col).doc(id).delete();
-}
-
-// ────────────────────────────────────────
-// RENDER ENTRY
-// ────────────────────────────────────────
-function render() {
-  if (loading) {
-    document.getElementById('main-content').innerHTML =
-      `<div class="spinner-wrap"><div class="spinner"></div></div>`;
-    return;
-  }
-
-  document.querySelectorAll('.nav-item').forEach(el => {
-    el.classList.toggle('active', el.dataset.tab === curTab);
-  });
-
-  const main = document.getElementById('main-content');
-  if (curBallId) {
-    main.innerHTML = renderDetail(curBallId);
-  } else {
-    switch (curTab) {
-      case 'dashboard': main.innerHTML = renderDashboard(); setTimeout(renderQR, 0); break;
-      case 'balls':     main.innerHTML = renderBallsList(); break;
-      case 'members':   main.innerHTML = renderMembers();   break;
-      default:          main.innerHTML = renderDashboard(); setTimeout(renderQR, 0);
-    }
-  }
-}
-
-// ────────────────────────────────────────
-// DASHBOARD
-// ────────────────────────────────────────
-function renderDashboard() {
-  if (state.members.length === 0) {
-    return `<div class="empty" style="padding-top:48px">
-      <div class="empty-icon">🏐</div>
-      <div class="empty-title">ようこそ！</div>
-      <div class="empty-text">チームメンバーを登録して<br>ボールを投げ合いましょう！<br><br>責任の所在を一目で把握できます。</div>
-      <button class="btn-main" onclick="showAddMember()" style="max-width:240px">👥 メンバーを追加する</button>
-    </div>` + renderQRCard();
-  }
-
-  const active  = activeBalls();
-  const overdue = active.filter(b => { const m=minutesUntil(b.dueDate); return m!==null && m<0; });
-  const soon    = active.filter(b => { const m=minutesUntil(b.dueDate); return m!==null && m>=0 && m<=2880; });
-
-  let h = `<div style="position:relative">
-    <button onclick="showStatsHelp()" style="position:absolute;top:-2px;right:0;width:20px;height:20px;border-radius:50%;border:1.5px solid var(--text-light);background:none;color:var(--text-light);font-size:11px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;line-height:1;padding:0">?</button>
-  <div class="stats-grid">
-    <div class="stat-card">
-      <div class="stat-num">${active.length}</div>
-      <div class="stat-lbl">🏐 総ボール</div>
-    </div>
-    <div class="stat-card ${overdue.length ? 'danger' : ''}">
-      <div class="stat-num ${overdue.length ? 'pulse' : ''}">${overdue.length}</div>
-      <div class="stat-lbl">🔴 期限超過</div>
-    </div>
-    <div class="stat-card ${soon.length ? 'warn' : ''}">
-      <div class="stat-num">${soon.length}</div>
-      <div class="stat-lbl">⚡ 要対応</div>
-    </div>
-  </div></div>`;
-
-  if (active.length === 0) {
-    h += `<div class="empty" style="padding-top:10px">
-      <div class="empty-icon">🎉</div>
-      <div class="empty-title">ボールなし！</div>
-      <div class="empty-text">今は誰もボールを持っていません。<br>新しいタスクを投げましょう！</div>
-    </div>`;
-    return h + renderQRCard();
-  }
-
-  h += `<div class="sec-title">メンバー別ボール</div>`;
-
-  state.members.forEach(m => {
-    const balls = ballsByHolder(m.id);
-    if (!balls.length) return;
-    h += `<div class="player-section">
-      <div class="ps-header">
-        <div class="ps-left">${avHTML(m)}<span class="ps-name">${esc(m.name)}</span></div>
-        <div class="ball-count">${balls.length}</div>
-      </div>
-      ${balls.slice(0,3).map(b => ballCardMini(b)).join('')}
-      ${balls.length > 3 ? `
-        <div id="extra-${m.id}" style="display:none">${balls.slice(3).map(b => ballCardMini(b)).join('')}</div>
-        <button id="extra-btn-${m.id}" onclick="toggleExtra('${m.id}',${balls.length-3})"
-          style="width:100%;text-align:center;font-size:12px;color:var(--text-light);margin-top:6px;background:none;border:none;cursor:pointer;padding:8px 0;font-family:inherit">
-          他 ${balls.length-3} 件を表示 ∨
-        </button>` : ''}
-    </div>`;
-  });
-
-  const unassigned = active.filter(b => !getMember(b.currentHolder));
-  if (unassigned.length) {
-    h += `<div class="player-section">
-      <div class="ps-header">
-        <div class="ps-left"><div class="av" style="background:#A0AEC0">?</div><span class="ps-name">未割当</span></div>
-        <div class="ball-count" style="background:#A0AEC0">${unassigned.length}</div>
-      </div>
-      ${unassigned.map(b => ballCardMini(b)).join('')}
-    </div>`;
-  }
-
-  return h + renderQRCard();
-}
-
-function ballCardMini(ball) {
-  const urg    = urgency(ball);
-  const holder = getMember(ball.currentHolder);
-  return `<div class="ball-card ${urg}" onclick="viewBall('${ball.id}')">
-    <div class="card-top">
-      <div class="ball-emoji">${ballIcon(ball.priority)}</div>
-      <div class="ball-info">
-        <div class="ball-title">${esc(ball.title)}</div>
-        <div class="badges">
-          <span class="badge ${urg}">${fmtDue(ball.dueDate)}</span>
-          <span class="badge ${ball.priority}">${priLabel(ball.priority)}</span>
-        </div>
-      </div>
-    </div>
-    <div class="card-bottom">
-      <div class="holder-row">${avHTML(holder,'sm')}<span class="holder-name">${holder ? esc(holder.name) : '未割当'}</span></div>
-      <button class="throw-btn" onclick="event.stopPropagation();showThrowModal('${ball.id}')">投げる ➤</button>
-    </div>
-  </div>`;
-}
-
-// ────────────────────────────────────────
-// BALLS LIST
-// ────────────────────────────────────────
-function renderBallsList() {
-  const active = activeBalls();
-  const done   = state.balls.filter(b => b.status === 'done');
-
-  let filtered = curFilter === 'done' ? done
-    : curFilter === 'all' ? active
-    : active.filter(b => b.currentHolder === curFilter);
-
-  const uOrder = { urgent:0, warning:1, normal:2, 'no-date':3, done:4 };
-  filtered = [...filtered].sort((a,b) => (uOrder[urgency(a)]||0) - (uOrder[urgency(b)]||0));
-
-  const tabs = [
-    { key:'all', label:'全て', count: active.length },
-    ...state.members.map(m => ({ key:m.id, label:m.name, count: ballsByHolder(m.id).length, color: m.color })),
-    { key:'done', label:'完了', count: done.length },
-  ];
-
-  let h = `<div class="filter-tabs">`;
-  tabs.forEach(t => {
-    h += `<button class="ftab ${curFilter===t.key?'active':''}" onclick="setFilter('${t.key}')">
-      ${t.color ? `<div class="ftab-dot" style="background:${t.color}"></div>` : ''}
-      ${esc(t.label)}<span class="cnt">${t.count}</span>
-    </button>`;
-  });
-  h += `</div>`;
-
-  if (!filtered.length) {
-    h += `<div class="empty">
-      <div class="empty-icon">${curFilter==='done'?'✅':curFilter==='all'?'🎉':'😊'}</div>
-      <div class="empty-title">${curFilter==='done'?'完了ボールなし':curFilter==='all'?'ボールなし！':`${esc(getMember(curFilter)?.name??'')}さんはボールなし`}</div>
-      <div class="empty-text">${curFilter==='all'?'新しいボールを投げましょう！':'このメンバーはフリーです！'}</div>
-      ${curFilter!=='done'?`<button class="btn-main" onclick="showCreateModal(null,'${curFilter==='all'?'':curFilter}')" style="max-width:200px">🏐 投げる！</button>`:''}
-    </div>`;
-    return h;
-  }
-
-  filtered.forEach(b => { h += ballCardFull(b); });
-  return h;
-}
-
-function ballCardFull(ball) {
-  const urg    = urgency(ball);
-  const holder = getMember(ball.currentHolder);
-  const isDone = ball.status === 'done';
-  return `<div class="ball-card ${urg} ${isDone?'done-card':''}" onclick="viewBall('${ball.id}')">
-    <div class="card-top">
-      <div class="ball-emoji">${isDone ? '✅' : ballIcon(ball.priority)}</div>
-      <div class="ball-info">
-        <div class="ball-title" style="${isDone?'text-decoration:line-through':''}">${esc(ball.title)}</div>
-        ${ball.description ? `<div class="ball-desc">${esc(ball.description)}</div>` : ''}
-        <div class="badges">
-          <span class="badge ${urg}">${fmtDue(ball.dueDate)}</span>
-          <span class="badge ${ball.priority}">${priLabel(ball.priority)}</span>
-        </div>
-      </div>
-    </div>
-    <div class="card-bottom">
-      <div class="holder-row">${avHTML(holder,'sm')}<span class="holder-name">${holder?esc(holder.name):'未割当'}</span></div>
-      ${isDone
-        ? `<span style="font-size:12px;color:var(--success);font-weight:800">完了 ✓</span>`
-        : `<button class="throw-btn" onclick="event.stopPropagation();showThrowModal('${ball.id}')">投げる ➤</button>`}
-    </div>
-  </div>`;
-}
-
-// ────────────────────────────────────────
-// BALL DETAIL
-// ────────────────────────────────────────
-function renderDetail(ballId) {
-  const ball = getBall(ballId);
-  if (!ball) { curBallId = null; return renderDashboard(); }
-
-  const holder = getMember(ball.currentHolder);
-  const urg    = urgency(ball);
-  const isDone = ball.status === 'done';
-  const heroCls = isDone ? 'done' : urg === 'urgent' ? 'urg' : '';
-
-  let h = `<div class="detail-hero ${heroCls}">
-    <button class="back-btn" onclick="goBack()">← 戻る</button>
-    <div class="detail-title">${esc(ball.title)}</div>
-    <div class="hero-badges">
-      <span class="hero-badge">${isDone ? '✅ 完了' : '🏐 進行中'}</span>
-      <span class="hero-badge">${fmtDue(ball.dueDate)}</span>
-      <span class="hero-badge">${priLabel(ball.priority)}</span>
-    </div>
-  </div>`;
-
-  h += `<div class="info-card">`;
-  if (ball.description) {
-    h += `<div class="info-row"><span class="info-key">説明</span><span class="info-val muted">${esc(ball.description)}</span></div>`;
-  }
-  h += `
-    <div class="info-row">
-      <span class="info-key">担当者</span>
-      <span class="info-val">${avHTML(holder,'sm')} ${holder ? esc(holder.name) : '未割当'}</span>
-    </div>
-    <div class="info-row">
-      <span class="info-key">期限</span>
-      <span class="info-val">${fmtDate(ball.dueDate)}</span>
-    </div>
-    <div class="info-row">
-      <span class="info-key">作成日</span>
-      <span class="info-val">${fmtDT(ball.createdAt)}</span>
-    </div>
-    <div class="info-row">
-      <span class="info-key">パス回数</span>
-      <span class="info-val">${ball.history.filter(h=>h.type==='throw').length} 回</span>
-    </div>
-  </div>`;
-
-  const shareUrl = generateShareUrl(ball.id);
-  if (shareUrl) {
-    h += `<div class="share-box">
-      <div class="share-box-label">🔗 このタスクを共有</div>
-      <div class="share-url-row">
-        <div class="share-url-text">${esc(shareUrl)}</div>
-        <button class="share-copy-btn" onclick="copyShareUrl('${ball.id}')">コピー</button>
-      </div>
-    </div>`;
-  }
-
-  if (!isDone) {
-    h += `<button class="btn-main" onclick="showThrowModal('${ball.id}')">➤ 別のメンバーに投げる</button>
-      <button class="btn-main green" onclick="completeBall('${ball.id}')">✅ このボールを完了する</button>`;
-  } else {
-    h += `<button class="btn-sub" onclick="reopenBall('${ball.id}')">🔄 再オープンする</button>`;
-  }
-  h += `<button class="btn-sub danger" onclick="confirmDelete('${ball.id}')">🗑 削除する</button>`;
-
-  h += `<div class="sec-title">パス履歴</div><div class="timeline">`;
-  const hist = [...ball.history].reverse();
-  hist.forEach(ev => {
-    const from = getMember(ev.from);
-    const to   = getMember(ev.to);
-    let action = '';
-    let dotCls = '';
-    if (ev.type === 'create') {
-      action = `🆕 <strong>${to ? esc(to.name) : '?'}</strong> が受け取り`;
-      dotCls = 'create-dot';
-    } else if (ev.type === 'throw') {
-      action = `➤ <strong>${from ? esc(from.name) : '?'}</strong> → <strong>${to ? esc(to.name) : '?'}</strong>`;
-    } else if (ev.type === 'done') {
-      action = `✅ <strong>${from ? esc(from.name) : '?'}</strong> が完了！`;
-      dotCls = 'done-dot';
-    } else if (ev.type === 'reopen') {
-      action = `🔄 再オープン`;
-    }
-    h += `<div class="tl-item">
-      <div class="tl-dot ${dotCls}"></div>
-      <div class="tl-body">
-        <div class="tl-head"><span class="tl-action">${action}</span><span class="tl-time">${fmtDT(ev.timestamp)}</span></div>
-        ${ev.note ? `<div class="tl-note">💬 "${esc(ev.note)}"</div>` : ''}
-      </div>
-    </div>`;
-  });
-  h += `</div>`;
-
-  return h;
-}
-
-// ────────────────────────────────────────
-// MEMBERS SCREEN
-// ────────────────────────────────────────
-function renderMembers() {
-  let h = `<button class="btn-main" onclick="showAddMember()" style="margin-bottom:14px">＋ メンバーを追加</button>`;
-
-  if (!state.members.length) {
-    h += `<div class="empty">
-      <div class="empty-icon">👥</div>
-      <div class="empty-title">メンバーなし</div>
-      <div class="empty-text">チームメンバーを追加して<br>タスクを割り当てましょう！</div>
-    </div>`;
-    return h;
-  }
-
-  state.members.forEach(m => {
-    const cnt  = ballsByHolder(m.id).length;
-    const done = state.balls.filter(b => b.status==='done' && b.history.some(hh=>hh.to===m.id || hh.from===m.id)).length;
-    h += `<div class="member-card">
-      ${avHTML(m, 'lg')}
-      <div class="mc-info">
-        <div class="mc-name">${esc(m.name)}</div>
-        <div class="mc-stat">保持中: ${cnt}個 ／ 関連完了: ${done}個</div>
-      </div>
-      <div class="mc-actions">
-        <button class="icon-btn" onclick="showAddMember('${m.id}')">✏️</button>
-        <button class="icon-btn del" onclick="confirmDeleteMember('${m.id}')">🗑</button>
-      </div>
-    </div>`;
-  });
-
-  return h;
-}
-
-// ────────────────────────────────────────
-// MODALS
-// ────────────────────────────────────────
-function showModal(inner) {
-  document.getElementById('modal-content').innerHTML = `<div class="modal-handle"></div>${inner}`;
-  document.getElementById('modal-overlay').classList.remove('hidden');
-}
-function hideModal() { document.getElementById('modal-overlay').classList.add('hidden'); }
-
-// ── CREATE BALL ──
-function showCreateModal(defaultHolderId = null, preHolder = null) {
-  const holderId = preHolder || defaultHolderId || '';
-
-  const memberOpts = state.members.map(m =>
-    `<button class="p-opt ${holderId===m.id?'sel':''}" onclick="selPlayer(this,'${m.id}')" data-pid="${m.id}">
-      ${avHTML(m)} <span class="p-opt-name">${esc(m.name)}</span>
-    </button>`).join('');
-
-  showModal(`
-    <div class="modal-title">🏐 ボールを投げる</div>
-    <div class="fgroup">
-      <label class="flabel">タスク名 *</label>
-      <input class="finput" id="f-title" type="text" placeholder="例: 企画書のレビュー" maxlength="100" autocomplete="off">
-    </div>
-    <div class="fgroup">
-      <label class="flabel">詳細（任意）</label>
-      <textarea class="finput" id="f-desc" placeholder="補足があれば..."></textarea>
-    </div>
-    <div class="fgroup">
-      <label class="flabel">投げる相手 *</label>
-      ${state.members.length
-        ? `<div class="player-selector" id="ps">${memberOpts}</div><input type="hidden" id="f-holder" value="${holderId}">`
-        : `<p style="color:var(--text-light);font-size:13px">先にメンバーを追加してください</p>`}
-    </div>
-    <div class="fgroup">
-      <label class="flabel">期限（任意）</label>
-      <input class="finput" id="f-due" type="datetime-local" min="${new Date().toISOString().slice(0,16)}">
-    </div>
-    <div class="fgroup">
-      <label class="flabel">優先度</label>
-      <div class="pri-row">
-        <button class="pri-opt low"        data-p="low"    onclick="selPri(this)">📎 低め</button>
-        <button class="pri-opt medium sel" data-p="medium" onclick="selPri(this)">📌 普通</button>
-        <button class="pri-opt high"       data-p="high"   onclick="selPri(this)">🔥 急ぎ</button>
-      </div>
-      <input type="hidden" id="f-pri" value="medium">
-    </div>
-    <div class="fgroup">
-      <label class="flabel">ひとこと（任意）</label>
-      <input class="finput" id="f-note" type="text" placeholder="「急ぎです！」など" maxlength="100" autocomplete="off">
-    </div>
-    <button class="btn-main" onclick="doCreateBall()">➤ えいっ！投げる！</button>
-    <button class="btn-sub" onclick="hideModal()">キャンセル</button>
-  `);
-
-  setTimeout(() => document.getElementById('f-title')?.focus(), 120);
-}
-
-// ── THROW (REASSIGN) BALL ──
-function showThrowModal(ballId) {
-  const ball = getBall(ballId);
-  if (!ball) return;
-
-  const opts = state.members.map(m =>
-    `<button class="p-opt ${ball.currentHolder===m.id?'sel':''}" onclick="selPlayer(this,'${m.id}')" data-pid="${m.id}">
-      ${avHTML(m)}
-      <span class="p-opt-name">${esc(m.name)}${ball.currentHolder===m.id?' (今)':''}</span>
-    </button>`).join('');
-
-  showModal(`
-    <div class="modal-title">➤ ボールを投げる</div>
-    <div style="font-size:14px;font-weight:700;color:var(--text-light);margin-bottom:16px">📌 "${esc(ball.title)}"</div>
-    <div class="fgroup">
-      <label class="flabel">投げる相手 *</label>
-      <div class="player-selector" id="ps">${opts}</div>
-      <input type="hidden" id="f-throwto" value="${ball.currentHolder}">
-    </div>
-    <div class="fgroup">
-      <label class="flabel">コメント（任意）</label>
-      <input class="finput" id="f-note" type="text" placeholder="「確認お願いします！」など" maxlength="100" autocomplete="off">
-    </div>
-    <button class="btn-main" onclick="doThrowBall('${ballId}')">➤ えいっ！投げる！</button>
-    <button class="btn-sub" onclick="hideModal()">キャンセル</button>
-  `);
-}
-
-// ── ADD/EDIT MEMBER ──
-function showAddMember(editId = null) {
-  const m = editId ? getMember(editId) : null;
-  const initColor = m?.color || COLORS[0];
-
-  const swatches = COLORS.map(c =>
-    `<div class="cswatch ${initColor===c?'sel':''}" style="background:${c}" onclick="selColor(this,'${c}')" data-c="${c}"></div>`
-  ).join('');
-
-  showModal(`
-    <div class="modal-title">${m ? 'メンバー編集' : '👤 メンバーを追加'}</div>
-    <div class="fgroup">
-      <label class="flabel">名前 *</label>
-      <input class="finput" id="f-mname" type="text" placeholder="例: 田中さん" maxlength="20" value="${m ? esc(m.name) : ''}" autocomplete="off">
-    </div>
-    <div class="fgroup">
-      <label class="flabel">メールアドレス（通知用・任意）</label>
-      <input class="finput" id="f-memail" type="email" placeholder="例: tanaka@example.com" value="${m?.email ? esc(m.email) : ''}" autocomplete="off">
-    </div>
-    <div class="fgroup">
-      <label class="flabel">カラー</label>
-      <div class="color-row" id="cp">${swatches}</div>
-      <input type="hidden" id="f-mcolor" value="${initColor}">
-    </div>
-    <button class="btn-main" onclick="${m ? `doEditMember('${editId}')` : 'doAddMember()'}">
-      ${m ? '💾 保存' : '＋ 追加する'}
-    </button>
-    <button class="btn-sub" onclick="hideModal()">キャンセル</button>
-  `);
-
-  setTimeout(() => document.getElementById('f-mname')?.focus(), 120);
-}
-
-// ── CONFIRM MODALS ──
-function confirmDelete(ballId) {
-  const ball = getBall(ballId);
-  if (!ball) return;
-  showModal(`
-    <div class="modal-title">🗑 ボールを削除</div>
-    <div style="color:var(--text-light);margin-bottom:20px;font-size:14px;line-height:1.6">
-      「${esc(ball.title)}」を削除しますか？<br>この操作は元に戻せません。
-    </div>
-    <button class="btn-main red" onclick="doDeleteBall('${ballId}')">🗑 削除する</button>
-    <button class="btn-sub" onclick="hideModal()">キャンセル</button>
-  `);
-}
-
-function confirmDeleteMember(memberId) {
-  const m = getMember(memberId);
-  if (!m) return;
-  const cnt = ballsByHolder(memberId).length;
-  showModal(`
-    <div class="modal-title">🗑 メンバーを削除</div>
-    <div style="color:var(--text-light);margin-bottom:20px;font-size:14px;line-height:1.6">
-      「${esc(m.name)}」を削除しますか？<br>
-      ${cnt ? `<strong style="color:var(--danger)">このメンバーが持つ${cnt}個のボールが未割当になります。</strong>` : ''}
-    </div>
-    <button class="btn-main red" onclick="doDeleteMember('${memberId}')">🗑 削除する</button>
-    <button class="btn-sub" onclick="hideModal()">キャンセル</button>
-  `);
-}
-
-// ────────────────────────────────────────
-// FORM HELPERS (called inline)
-// ────────────────────────────────────────
-function selPlayer(el, pid) {
-  document.querySelectorAll('.p-opt').forEach(o => o.classList.remove('sel'));
-  el.classList.add('sel');
-  const inp = document.getElementById('f-throwto') || document.getElementById('f-holder');
-  if (inp) inp.value = pid;
-}
-function selPri(el) {
-  document.querySelectorAll('.pri-opt').forEach(o => o.classList.remove('sel'));
-  el.classList.add('sel');
-  document.getElementById('f-pri').value = el.dataset.p;
-}
-function selColor(el, c) {
-  document.querySelectorAll('.cswatch').forEach(s => s.classList.remove('sel'));
-  el.classList.add('sel');
-  document.getElementById('f-mcolor').value = c;
-}
-
-// ────────────────────────────────────────
-// ACTIONS
-// ────────────────────────────────────────
-function doCreateBall() {
-  const title  = document.getElementById('f-title')?.value.trim();
-  const desc   = document.getElementById('f-desc')?.value.trim();
-  const holder = document.getElementById('f-holder')?.value;
-  const due    = document.getElementById('f-due')?.value;
-  const pri    = document.getElementById('f-pri')?.value || 'medium';
-  const note   = document.getElementById('f-note')?.value.trim();
-
-  if (!title)  { toast('タスク名を入力してください'); document.getElementById('f-title')?.focus(); return; }
-  if (!holder) { toast('投げる相手を選んでください'); return; }
-
-  const now  = new Date().toISOString();
-  const ball = {
-    id: uid(), title, description: desc||'',
-    currentHolder: holder, dueDate: due||null, priority: pri,
-    status: 'active', createdAt: now,
-    history: [{ id:uid(), from:null, to:holder, timestamp:now, note:note||'', type:'create' }]
-  };
-
-  if (localMode) {
-    state.balls.unshift(ball);
-    saveState();
-  } else {
-    fsSet('balls', ball);
-  }
-
-  hideModal();
-  const m = getMember(holder);
-  sendEmailNotification(ball, m, note);
-  playThrow(() => {
-    toast(`🏐 ${m?esc(m.name):'誰か'}にボールを投げました！`);
-    if (localMode) render();
-  });
-}
-
-function doThrowBall(ballId) {
-  const newHolder = document.getElementById('f-throwto')?.value;
-  const note      = document.getElementById('f-note')?.value.trim();
-  const ball      = getBall(ballId);
-  if (!ball) return;
-  if (!newHolder) { toast('投げる相手を選んでください'); return; }
-
-  const updatedBall = {
-    ...ball,
-    currentHolder: newHolder,
-    history: [...ball.history, { id:uid(), from:ball.currentHolder, to:newHolder, timestamp:new Date().toISOString(), note:note||'', type:'throw' }]
-  };
-
-  if (localMode) {
-    const idx = state.balls.findIndex(b => b.id === ballId);
-    if (idx !== -1) state.balls[idx] = updatedBall;
-    saveState();
-  } else {
-    fsSet('balls', updatedBall);
-  }
-
-  hideModal();
-  const m = getMember(newHolder);
-  sendEmailNotification(updatedBall, m, note);
-  playThrow(() => {
-    toast(`➤ ${m?esc(m.name):'誰か'}にパスしました！`);
-    if (localMode) render();
-  });
-}
-
-function completeBall(ballId) {
-  const ball = getBall(ballId);
-  if (!ball) return;
-
-  const updatedBall = {
-    ...ball,
-    status: 'done',
-    history: [...ball.history, { id:uid(), from:ball.currentHolder, to:ball.currentHolder, timestamp:new Date().toISOString(), note:'', type:'done' }]
-  };
-
-  if (localMode) {
-    const idx = state.balls.findIndex(b => b.id === ballId);
-    if (idx !== -1) state.balls[idx] = updatedBall;
-    saveState();
-  } else {
-    fsSet('balls', updatedBall);
-  }
-
-  const overlay = document.createElement('div');
-  overlay.className = 'done-overlay';
-  overlay.innerHTML = `<div class="done-icon">🎉</div><div class="done-text">完了！</div><div class="done-sub">お疲れさまでした！</div>`;
-  document.body.appendChild(overlay);
-
-  setTimeout(() => {
-    overlay.remove();
-    curBallId = null;
-    curTab    = 'dashboard';
-    toast('✅ ボールを完了しました！');
-    render();
-  }, 1900);
-}
-
-function reopenBall(ballId) {
-  const ball = getBall(ballId);
-  if (!ball) return;
-
-  const updatedBall = {
-    ...ball,
-    status: 'active',
-    history: [...ball.history, { id:uid(), from:null, to:ball.currentHolder, timestamp:new Date().toISOString(), note:'', type:'reopen' }]
-  };
-
-  if (localMode) {
-    const idx = state.balls.findIndex(b => b.id === ballId);
-    if (idx !== -1) state.balls[idx] = updatedBall;
-    saveState();
-    render();
-  } else {
-    fsSet('balls', updatedBall);
-  }
-
-  toast('🔄 再オープンしました');
-}
-
-function doDeleteBall(ballId) {
-  curBallId = null;
-  curTab    = 'dashboard';
-
-  if (localMode) {
-    state.balls = state.balls.filter(b => b.id !== ballId);
-    saveState();
-    render();
-  } else {
-    fsDelete('balls', ballId);
-  }
-
-  hideModal();
-  toast('🗑 削除しました');
-}
-
-function doAddMember() {
-  const name  = document.getElementById('f-mname')?.value.trim();
-  const email = document.getElementById('f-memail')?.value.trim();
-  const color = document.getElementById('f-mcolor')?.value || COLORS[0];
-  if (!name) { toast('名前を入力してください'); document.getElementById('f-mname')?.focus(); return; }
-
-  const member = { id: uid(), name, email: email || '', color };
-
-  if (localMode) {
-    state.members.push(member);
-    saveState();
-    render();
-  } else {
-    fsSet('members', member);
-  }
-
-  hideModal();
-  toast(`👤 ${name} を追加しました！`);
-}
-
-function doEditMember(memberId) {
-  const name  = document.getElementById('f-mname')?.value.trim();
-  const email = document.getElementById('f-memail')?.value.trim();
-  const color = document.getElementById('f-mcolor')?.value;
-  if (!name) { toast('名前を入力してください'); return; }
-
-  const m = getMember(memberId);
-  if (!m) return;
-
-  const updatedMember = { ...m, name, email: email || '', color: color || m.color };
-
-  if (localMode) {
-    const idx = state.members.findIndex(mem => mem.id === memberId);
-    if (idx !== -1) state.members[idx] = updatedMember;
-    saveState();
-    render();
-  } else {
-    fsSet('members', updatedMember);
-  }
-
-  hideModal();
-  toast('💾 保存しました');
-}
-
-function doDeleteMember(memberId) {
-  if (localMode) {
-    state.members = state.members.filter(m => m.id !== memberId);
-    saveState();
-    render();
-  } else {
-    fsDelete('members', memberId);
-  }
-
-  hideModal();
-  toast('🗑 メンバーを削除しました');
-}
-
-// ────────────────────────────────────────
-// NAVIGATION
-// ────────────────────────────────────────
-function showStatsHelp() {
-  showModal(`
-    <div class="modal-title">📊 数値の見かた</div>
-    <div class="info-card" style="margin-bottom:10px">
-      <div class="info-row">
-        <span class="info-key">🏐 総ボール</span>
-        <span class="info-val muted" style="text-align:right;font-size:13px">進行中のタスクの合計数</span>
-      </div>
-      <div class="info-row">
-        <span class="info-key" style="color:var(--danger)">🔴 期限超過</span>
-        <span class="info-val muted" style="text-align:right;font-size:13px">期限日時を過ぎたタスク数</span>
-      </div>
-      <div class="info-row">
-        <span class="info-key" style="color:#D97706">⚡ 要対応</span>
-        <span class="info-val muted" style="text-align:right;font-size:13px">期限まで48時間以内のタスク数</span>
-      </div>
-    </div>
-    <button class="btn-sub" onclick="hideModal()">閉じる</button>
-  `);
-}
-
-function toggleExtra(memberId, count) {
-  const el  = document.getElementById('extra-' + memberId);
-  const btn = document.getElementById('extra-btn-' + memberId);
-  if (!el) return;
-  const isHidden = el.style.display === 'none';
-  el.style.display  = isHidden ? 'block' : 'none';
-  btn.textContent   = isHidden ? '折りたたむ ∧' : `他 ${count} 件を表示 ∨`;
-  if (isHidden) setTimeout(renderQR, 0);
-}
-
-function setTab(tab) { curTab = tab; curBallId = null; if (tab==='balls') curFilter='all'; render(); }
-function setFilter(f) { curFilter = f; render(); }
-function viewBall(id) { curBallId = id; render(); window.scrollTo(0,0); }
-function goBack() { curBallId = null; render(); }
-
-// ────────────────────────────────────────
-// ANIMATIONS & FEEDBACK
-// ────────────────────────────────────────
-function playThrow(cb) {
-  const el = document.getElementById('throw-anim');
-  el.classList.remove('hidden');
-  setTimeout(() => { el.classList.add('hidden'); cb && cb(); }, 750);
-}
-
-let _toastTimer;
-function toast(msg) {
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.classList.add('show');
-  clearTimeout(_toastTimer);
-  _toastTimer = setTimeout(() => el.classList.remove('show'), 2600);
-}
-
-// ────────────────────────────────────────
-// EVENT LISTENERS
-// ────────────────────────────────────────
-document.getElementById('btn-new').addEventListener('click', () => {
-  if (loading) return;
-  if (!state.members.length) {
-    toast('先にメンバーを追加してください');
-    setTab('members');
-    setTimeout(() => showAddMember(), 80);
-    return;
-  }
-  showCreateModal();
-});
-
-document.querySelectorAll('.nav-item').forEach(el => {
-  el.addEventListener('click', () => {
-    if (loading) return;
-    setTab(el.dataset.tab);
-  });
-});
-
-document.getElementById('modal-overlay').addEventListener('click', e => {
-  if (e.target === document.getElementById('modal-overlay')) hideModal();
-});
-
-document.addEventListener('keydown', e => { if (e.key === 'Escape') hideModal(); });
-
-// ────────────────────────────────────────
-// DEMO DATA (local mode only)
-// ────────────────────────────────────────
-function initDemo() {
-  if (state.members.length || state.balls.length) return;
-
-  const m1 = { id:uid(), name:'田中さん',  color:'#3B82F6' };
-  const m2 = { id:uid(), name:'鈴木さん',  color:'#EF4444' };
-  const m3 = { id:uid(), name:'佐藤さん',  color:'#10B981' };
-  state.members = [m1, m2, m3];
-
-  const now = new Date();
-  const d = n => { const x=new Date(now); x.setDate(x.getDate()+n); return x.toISOString().split('T')[0]; };
-  const ts = n => new Date(now.getTime() - n*3600000).toISOString();
-
-  state.balls = [
-    {
-      id:uid(), title:'企画書のレビュー依頼', description:'3月末締切の新規プロジェクト企画書です。ご確認お願いします。',
-      currentHolder:m1.id, dueDate:d(1), priority:'high', status:'active', createdAt:ts(26),
-      history:[
-        { id:uid(), from:m2.id, to:m1.id, timestamp:ts(26), note:'急ぎでお願いします！', type:'create' }
-      ]
-    },
-    {
-      id:uid(), title:'ロゴデザインの修正', description:'フォントをもう少し太くしてほしいです。',
-      currentHolder:m3.id, dueDate:d(6), priority:'medium', status:'active', createdAt:ts(50),
-      history:[
-        { id:uid(), from:null,  to:m2.id, timestamp:ts(50), note:'',                     type:'create' },
-        { id:uid(), from:m2.id, to:m3.id, timestamp:ts(24), note:'デザイナーさんお願いします', type:'throw'  }
-      ]
-    },
-    {
-      id:uid(), title:'契約書の最終確認', description:'',
-      currentHolder:m2.id, dueDate:d(-1), priority:'high', status:'active', createdAt:ts(74),
-      history:[
-        { id:uid(), from:m3.id, to:m2.id, timestamp:ts(74), note:'法務確認お願いします', type:'create' }
-      ]
-    },
-    {
-      id:uid(), title:'MTG議事録の共有', description:'',
-      currentHolder:m1.id, dueDate:d(14), priority:'low', status:'active', createdAt:ts(12),
-      history:[
-        { id:uid(), from:m3.id, to:m1.id, timestamp:ts(12), note:'', type:'create' }
-      ]
-    }
-  ];
-
-  saveState();
-}
-
-// ────────────────────────────────────────
-// EMAIL NOTIFICATION & REMINDER
-// ────────────────────────────────────────
-emailjs.init(EMAILJS_PUBLIC_KEY);
-
-const REMINDER_KEY = 'dotchiball_reminders_v1';
-
-function loadSentReminders() {
-  try { return JSON.parse(localStorage.getItem(REMINDER_KEY) || '{}'); } catch(_) { return {}; }
-}
-
-function markReminderSent(ballId) {
-  const r = loadSentReminders();
-  r[ballId] = new Date().toISOString();
-  localStorage.setItem(REMINDER_KEY, JSON.stringify(r));
-}
-
-function hasReminderSent(ballId) {
-  return !!loadSentReminders()[ballId];
-}
-
-function checkReminders() {
-  if (localMode || !db) return;
-  activeBalls().forEach(ball => {
-    if (!ball.dueDate || hasReminderSent(ball.id)) return;
-    const mins = minutesUntil(ball.dueDate);
-    if (mins !== null && mins >= 0 && mins <= 10) {
-      const holder = getMember(ball.currentHolder);
-      if (holder && holder.email) {
-        emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
-          to_name:    holder.name,
-          email:      holder.email,
-          ball_title: ball.title,
-          due_date:   fmtDate(ball.dueDate),
-          priority:   priLabel(ball.priority),
-          note:       '⏰ 期限10分前のリマインダーです',
-          ball_url:   generateShareUrl(ball.id) || '',
-        }).catch(err => console.warn('リマインダーメール失敗:', err));
-        markReminderSent(ball.id);
-        toast(`⏰ 「${ball.title}」の期限が10分後です`);
+  // Simple scroll reveal
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('in');
+        io.unobserve(e.target);
       }
-    }
-  });
-}
-
-setInterval(checkReminders, 60000); // 1分ごとにチェック
-
-function sendEmailNotification(ball, toMember, note) {
-  if (!toMember || !toMember.email) return;
-  const url = generateShareUrl(ball.id) || '';
-  emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
-    to_name:    toMember.name,
-    email:      toMember.email,
-    ball_title: ball.title,
-    due_date:   fmtDate(ball.dueDate),
-    priority:   priLabel(ball.priority),
-    note:       note || 'なし',
-    ball_url:   url,
-  }).catch(err => console.warn('メール送信失敗:', err));
-}
-
-// ────────────────────────────────────────
-// STARTUP
-// ────────────────────────────────────────
-(function init() {
-  const params = new URLSearchParams(window.location.search);
-  const urlRoom = params.get('room');
-  const urlBall = params.get('ball');
-
-  const setup = loadSetup();
-  if (setup && setup.roomCode) {
-    try {
-      initFirebase(EMBEDDED_CONFIG, setup.roomCode);
-      if (urlRoom === setup.roomCode && urlBall) _pendingBallId = urlBall;
-      hideSetupScreen();
-      render(); // shows spinner while listeners load
-    } catch(e) {
-      console.error('Firebase init failed:', e);
-      showSetupScreen();
-    }
-  } else {
-    // セットアップ未完了の場合、URLのルームコードをフォームに自動入力
-    if (urlRoom) {
-      const inp = document.getElementById('setup-room');
-      if (inp) inp.value = urlRoom;
-    }
-  }
-})();
+    });
+  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
 </script>
+
 </body>
 </html>
