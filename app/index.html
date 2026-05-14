@@ -158,6 +158,62 @@
     .stat-lbl { font-size: 10px; color: var(--text-light); font-weight: 700; margin-top: 4px; }
     .stat-card.danger .stat-num { color: var(--danger); }
     .stat-card.warn .stat-num { color: var(--warning); }
+    .stat-card.tappable { cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
+    .stat-card.tappable:active { transform: scale(0.96); box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+
+    /* ── SOS BANNER ── */
+    .sos-banner {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: linear-gradient(135deg, #FEE2E2, #FECACA);
+      border: 2px solid var(--danger);
+      border-radius: var(--r);
+      padding: 12px 14px;
+      margin-bottom: 14px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.18);
+      animation: sosPulse 1.8s ease-in-out infinite;
+      transition: transform 0.15s;
+    }
+    .sos-banner:active { transform: scale(0.98); }
+    .sos-banner-icon { font-size: 28px; flex-shrink: 0; }
+    .sos-banner-body { flex: 1; min-width: 0; }
+    .sos-banner-title { font-size: 15px; font-weight: 900; color: var(--danger); }
+    .sos-banner-sub { font-size: 12px; color: #991B1B; margin-top: 2px; }
+    .sos-banner-chev { font-size: 24px; color: var(--danger); font-weight: 900; }
+    @keyframes sosPulse {
+      0%, 100% { box-shadow: 0 4px 12px rgba(220, 38, 38, 0.18); }
+      50%      { box-shadow: 0 4px 22px rgba(220, 38, 38, 0.45); }
+    }
+    .sos-item {
+      background: #FEF2F2;
+      border: 1px solid #FECACA;
+      border-radius: var(--r-sm);
+      padding: 12px;
+      margin-bottom: 10px;
+    }
+    .sos-item-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 6px;
+    }
+    .sos-item-from { font-size: 14px; font-weight: 800; color: var(--danger); }
+    .sos-item-time { font-size: 11px; color: var(--text-light); }
+    .sos-item-ball {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+      padding: 6px 8px;
+      background: white;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-bottom: 4px;
+    }
+    .sos-item-ball.muted { color: var(--text-light); font-weight: 400; cursor: default; }
+    .sos-item-msg { font-size: 13px; color: var(--text); margin-top: 4px; }
+    .sos-list { max-height: 60vh; overflow-y: auto; margin-bottom: 10px; }
 
     /* ── BALL CARD ── */
     .ball-card {
@@ -169,8 +225,89 @@
       cursor: pointer;
       transition: transform 0.15s, box-shadow 0.15s;
       border-left: 4px solid transparent;
+      touch-action: pan-y;
+      user-select: none;
+      position: relative;
+      z-index: 1;
     }
     .ball-card:active { transform: scale(0.98); box-shadow: var(--shadow-md); }
+
+    /* ── SWIPE WRAPPER (action reveal) ── */
+    .ball-card-wrap {
+      position: relative;
+      margin-bottom: 10px;
+      border-radius: var(--r);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+    .ball-card-wrap .ball-card { margin-bottom: 0; box-shadow: none; }
+    .swipe-bg {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 60%;
+      display: flex;
+      align-items: center;
+      font-weight: 900;
+      font-size: 15px;
+      color: white;
+      gap: 10px;
+      padding: 0 20px;
+      letter-spacing: 0.5px;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .swipe-bg-icon { font-size: 24px; }
+    .swipe-bg-throw {
+      left: 0;
+      background: linear-gradient(135deg, #2563EB, #1D4ED8);
+      justify-content: flex-start;
+    }
+    .swipe-bg-sos {
+      right: 0;
+      background: linear-gradient(135deg, #DC2626, #991B1B);
+      justify-content: flex-end;
+    }
+    /* 閾値超過時の発光エフェクト */
+    .ball-card-wrap.swipe-armed-right .swipe-bg-throw {
+      box-shadow: inset 0 0 0 3px rgba(255,255,255,0.45);
+      animation: armedPulse 0.6s ease-in-out infinite;
+    }
+    .ball-card-wrap.swipe-armed-left .swipe-bg-sos {
+      box-shadow: inset 0 0 0 3px rgba(255,255,255,0.45);
+      animation: armedPulse 0.6s ease-in-out infinite;
+    }
+    @keyframes armedPulse {
+      0%, 100% { filter: brightness(1); }
+      50%      { filter: brightness(1.3); }
+    }
+    /* スワイプ可能を示すヒント */
+    .swipe-hint {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-light);
+      letter-spacing: 0.3px;
+      flex-shrink: 0;
+      min-width: 0;
+    }
+    .swipe-hint .hint-left,
+    .swipe-hint .hint-right,
+    .swipe-hint .hint-up {
+      padding: 3px 7px;
+      border-radius: 999px;
+      background: #F1F5F9;
+      white-space: nowrap;
+    }
+    .swipe-hint .hint-left  { color: #DC2626; animation: hintLeft  2.4s ease-in-out infinite; }
+    .swipe-hint .hint-right { color: #2563EB; animation: hintRight 2.4s ease-in-out infinite; }
+    .swipe-hint .hint-up    { color: #16A34A; animation: hintUp    2.4s ease-in-out infinite; }
+    @keyframes hintLeft  { 0%,100%{transform:translateX(0);} 50%{transform:translateX(-3px);} }
+    @keyframes hintRight { 0%,100%{transform:translateX(0);} 50%{transform:translateX(3px);} }
+    @keyframes hintUp    { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-2px);} }
     .ball-card.urgent  { border-left-color: var(--danger); }
     .ball-card.warning { border-left-color: var(--warning); }
     .ball-card.normal  { border-left-color: var(--success); }
@@ -551,6 +688,29 @@
     }
     .icon-btn:active { transform: scale(0.9); }
     .icon-btn.del { background: #FEE2E2; }
+    .member-card.is-owner { border: 2px solid #F59E0B; background: #FFFBEB; }
+    .owner-crown { font-size: 14px; margin-left: 4px; }
+    .mc-owner-btn {
+      margin-top: 6px;
+      padding: 5px 10px;
+      font-size: 11px;
+      font-weight: 700;
+      background: #FEF3C7;
+      color: #92400E;
+      border: 1px solid #FCD34D;
+      border-radius: 999px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.15s;
+    }
+    .mc-owner-btn:active { transform: scale(0.95); background: #FDE68A; }
+    .mc-owner-label {
+      margin-top: 6px;
+      font-size: 11px;
+      font-weight: 800;
+      color: #92400E;
+      letter-spacing: 0.3px;
+    }
 
     /* ── EMPTY STATE ── */
     .empty { text-align: center; padding: 40px 16px; }
@@ -789,6 +949,28 @@
       font-size: 17px;
       font-weight: 900;
     }
+    .invite-card { padding: 0; }
+    .invite-toggle {
+      width: 100%;
+      background: none;
+      border: none;
+      padding: 16px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.15s;
+    }
+    .invite-toggle:active { background: #F8FAFC; }
+    .invite-chev {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--text-light);
+      transition: transform 0.2s;
+    }
+    .invite-body { padding: 0 14px 14px; }
+    .invite-body.hidden { display: none; }
 
     /* ── SHARE BOX ── */
     .share-box {
@@ -1018,13 +1200,14 @@ let loading   = false;
 let _loadedMembers  = false;
 let _loadedBalls    = false;
 let _loadedProjects = false;
+let _loadedSOS      = false;
 let _pendingBallId  = null; // URLパラメータから取得したballId
 
 // ────────────────────────────────────────
 // STATE
 // ────────────────────────────────────────
 function defaultState() {
-  return { members: [], balls: [], projects: [] };
+  return { members: [], balls: [], projects: [], sos: [] };
 }
 let state = defaultState();
 
@@ -1077,6 +1260,40 @@ const getProject = id => state.projects.find(p => p.id === id);
 const activeBalls   = () => state.balls.filter(b => b.status === 'active');
 const ballsByHolder = mid => activeBalls().filter(b => b.currentHolder === mid);
 const ballsByProject = pid => activeBalls().filter(b => b.projectId === pid);
+
+// オーナー関連
+const getOwner = () => state.members.find(m => m.isOwner) || state.members[0] || null;
+const openSOS  = () => (state.sos || []).filter(s => !s.resolved);
+function migrateOwnerIfNeeded() {
+  if (!state.members.length) return;
+  if (state.members.some(m => m.isOwner)) return;
+  // 最初のメンバーを自動的にオーナーに設定
+  const first = state.members[0];
+  const updated = { ...first, isOwner: true };
+  if (localMode) {
+    const idx = state.members.findIndex(m => m.id === first.id);
+    if (idx !== -1) state.members[idx] = updated;
+    saveState();
+  } else {
+    fsSet('members', updated);
+  }
+}
+function setOwner(memberId) {
+  state.members.forEach(m => {
+    const shouldBeOwner = m.id === memberId;
+    if (!!m.isOwner === shouldBeOwner) return;
+    const updated = { ...m, isOwner: shouldBeOwner };
+    if (localMode) {
+      const idx = state.members.findIndex(mem => mem.id === m.id);
+      if (idx !== -1) state.members[idx] = updated;
+    } else {
+      fsSet('members', updated);
+    }
+  });
+  if (localMode) { saveState(); render(); }
+  const newOwner = state.members.find(m => m.id === memberId);
+  toast(`👑 ${newOwner?.name || ''}をオーナーに設定しました`);
+}
 
 function daysUntil(dateStr) {
   if (!dateStr) return null;
@@ -1149,19 +1366,46 @@ function getRoomInviteUrl() {
   return window.location.origin + window.location.pathname + '?room=' + encodeURIComponent(roomCode);
 }
 
+const INVITE_OPEN_KEY = 'dotchiball_invite_open_v1';
+function isInviteOpen() {
+  try { return localStorage.getItem(INVITE_OPEN_KEY) === '1'; } catch(_) { return false; }
+}
+function toggleInviteSection() {
+  const open = !isInviteOpen();
+  try { localStorage.setItem(INVITE_OPEN_KEY, open ? '1' : '0'); } catch(_) {}
+  const body = document.getElementById('invite-body');
+  const chev = document.getElementById('invite-chev');
+  if (!body) return;
+  if (open) {
+    body.classList.remove('hidden');
+    chev.textContent = '∧';
+    setTimeout(renderQR, 0);
+  } else {
+    body.classList.add('hidden');
+    chev.textContent = '∨';
+  }
+}
+
 function renderQRCard() {
   if (localMode || !roomCode) return '';
-  return `<div class="qr-card">
-    <div class="qr-card-title">📱 このルームに招待</div>
-    <div class="qr-wrap" id="qr-code-wrap"></div>
-    <div class="qr-room-code">ルームコード: <strong>${esc(roomCode)}</strong></div>
-    <button class="share-copy-btn" style="width:100%" onclick="copyRoomInviteUrl()">🔗 招待URLをコピー</button>
+  const open = isInviteOpen();
+  return `<div class="qr-card invite-card">
+    <button type="button" class="invite-toggle" onclick="toggleInviteSection()">
+      <span class="qr-card-title" style="margin:0">📱 このルームに招待</span>
+      <span class="invite-chev" id="invite-chev">${open ? '∧' : '∨'}</span>
+    </button>
+    <div id="invite-body" class="invite-body${open ? '' : ' hidden'}">
+      <button class="share-copy-btn" style="width:100%;margin-bottom:12px" onclick="copyRoomInviteUrl()">🔗 招待URLをコピー</button>
+      <div class="qr-wrap" id="qr-code-wrap"></div>
+      <div class="qr-room-code">ルームコード: <strong>${esc(roomCode)}</strong></div>
+    </div>
   </div>`;
 }
 
 function renderQR() {
   const wrap = document.getElementById('qr-code-wrap');
   if (!wrap || !roomCode || typeof QRCode === 'undefined') return;
+  if (!isInviteOpen()) return; // 折りたたみ時は描画スキップ
   wrap.innerHTML = '';
   const url = getRoomInviteUrl();
   new QRCode(wrap, { text: url, width: 140, height: 140, colorDark: '#1A202C', colorLight: '#ffffff' });
@@ -1218,6 +1462,7 @@ function initFirebase(config, room) {
   _loadedMembers  = false;
   _loadedBalls    = false;
   _loadedProjects = false;
+  _loadedSOS      = false;
   setupListeners();
   updateConnBadge(null);
   showConnInfo();
@@ -1229,6 +1474,7 @@ function setupListeners() {
   room.collection('members').onSnapshot(snap => {
     state.members = snap.docs.map(d => d.data());
     _loadedMembers = true;
+    migrateOwnerIfNeeded();
     checkAllLoaded();
     render();
   }, err => {
@@ -1257,10 +1503,21 @@ function setupListeners() {
     console.error('projects listener:', err);
     updateConnBadge(false);
   });
+
+  room.collection('sos').onSnapshot(snap => {
+    state.sos = snap.docs.map(d => d.data());
+    state.sos.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    _loadedSOS = true;
+    checkAllLoaded();
+    render();
+  }, err => {
+    console.error('sos listener:', err);
+    updateConnBadge(false);
+  });
 }
 
 function checkAllLoaded() {
-  if (_loadedMembers && _loadedBalls && _loadedProjects && loading) {
+  if (_loadedMembers && _loadedBalls && _loadedProjects && _loadedSOS && loading) {
     loading = false;
     updateConnBadge(true);
     if (_pendingBallId) {
@@ -1347,9 +1604,12 @@ function useLocalMode() {
   localMode       = true;
   loading         = false;
   _loadedProjects = true;
+  _loadedSOS      = true;
   state           = loadLocalState();
+  if (!state.sos) state.sos = [];
   hideSetupScreen();
   initDemo();
+  migrateOwnerIfNeeded();
   render();
 }
 
@@ -1399,6 +1659,7 @@ function render() {
       default:          main.innerHTML = renderDashboard(); setTimeout(renderQR, 0);
     }
   }
+  setTimeout(attachSwipeHandlersToCards, 0);
 }
 
 // ────────────────────────────────────────
@@ -1423,18 +1684,19 @@ function renderDashboard() {
   const overdue = active.filter(b => { const m=minutesUntil(b.dueDate); return m!==null && m<0; });
   const soon    = active.filter(b => { const m=minutesUntil(b.dueDate); return m!==null && m>=0 && m<=2880; });
 
-  let h = `<div style="position:relative">
+  let h = renderSOSBanner();
+  h += `<div style="position:relative">
     <button onclick="showStatsHelp()" style="position:absolute;top:-2px;right:0;width:20px;height:20px;border-radius:50%;border:1.5px solid var(--text-light);background:none;color:var(--text-light);font-size:11px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;line-height:1;padding:0">?</button>
   <div class="stats-grid">
-    <div class="stat-card">
+    <div class="stat-card tappable" onclick="gotoBallsFilter('all')">
       <div class="stat-num">${active.length}</div>
       <div class="stat-lbl">🏐 総ボール</div>
     </div>
-    <div class="stat-card ${overdue.length ? 'danger' : ''}">
+    <div class="stat-card tappable ${overdue.length ? 'danger' : ''}" onclick="gotoBallsFilter('overdue')">
       <div class="stat-num ${overdue.length ? 'pulse' : ''}">${overdue.length}</div>
       <div class="stat-lbl">🔴 期限超過</div>
     </div>
-    <div class="stat-card ${soon.length ? 'warn' : ''}">
+    <div class="stat-card tappable ${soon.length ? 'warn' : ''}" onclick="gotoBallsFilter('soon')">
       <div class="stat-num">${soon.length}</div>
       <div class="stat-lbl">⚡ 要対応</div>
     </div>
@@ -1589,10 +1851,19 @@ function renderProjectDashboard(projectId) {
 function drillProject(pid) { curProjectId = pid; render(); window.scrollTo(0, 0); }
 function drillBack()        { curProjectId = null; render(); window.scrollTo(0, 0); }
 
+function swipeWrap(inner, ballId, isDone) {
+  if (isDone) return inner;
+  return `<div class="ball-card-wrap">
+    <div class="swipe-bg swipe-bg-throw"><span class="swipe-bg-icon">➤</span><span class="swipe-bg-label">投げる</span></div>
+    <div class="swipe-bg swipe-bg-sos"><span class="swipe-bg-label">SOS</span><span class="swipe-bg-icon">🆘</span></div>
+    ${inner}
+  </div>`;
+}
+
 function ballCardMini(ball) {
   const urg    = urgency(ball);
   const holder = getMember(ball.currentHolder);
-  return `<div class="ball-card ${urg}" onclick="viewBall('${ball.id}')">
+  return swipeWrap(`<div class="ball-card ${urg}" data-ball-id="${ball.id}" onclick="viewBall('${ball.id}')">
     <div class="card-top">
       <div class="ball-emoji">${ballIcon(ball.priority)}</div>
       <div class="ball-info">
@@ -1605,9 +1876,13 @@ function ballCardMini(ball) {
     </div>
     <div class="card-bottom">
       <div class="holder-row">${avHTML(holder,'sm')}<span class="holder-name">${holder ? esc(holder.name) : '未割当'}</span></div>
-      <button class="throw-btn" onclick="event.stopPropagation();showThrowModal('${ball.id}')">投げる ➤</button>
+      <div class="swipe-hint">
+        <span class="hint-left">‹ SOS</span>
+        <span class="hint-up">↑ 完了</span>
+        <span class="hint-right">投げる ›</span>
+      </div>
     </div>
-  </div>`;
+  </div>`, ball.id, false);
 }
 
 // ────────────────────────────────────────
@@ -1650,13 +1925,19 @@ function renderBallsList() {
 
   let filtered = curFilter === 'done' ? done
     : curFilter === 'all' ? active
+    : curFilter === 'overdue' ? active.filter(b => { const m=minutesUntil(b.dueDate); return m!==null && m<0; })
+    : curFilter === 'soon'    ? active.filter(b => { const m=minutesUntil(b.dueDate); return m!==null && m>=0 && m<=2880; })
     : active.filter(b => b.currentHolder === curFilter);
 
   const uOrder = { urgent:0, warning:1, normal:2, 'no-date':3, done:4 };
   filtered = [...filtered].sort((a,b) => (uOrder[urgency(a)]||0) - (uOrder[urgency(b)]||0));
 
+  const overdueCnt = active.filter(b => { const m=minutesUntil(b.dueDate); return m!==null && m<0; }).length;
+  const soonCnt    = active.filter(b => { const m=minutesUntil(b.dueDate); return m!==null && m>=0 && m<=2880; }).length;
   const tabs = [
     { key:'all', label:'全て', count: active.length },
+    ...(curFilter === 'overdue' || overdueCnt > 0 ? [{ key:'overdue', label:'🔴 期限超過', count: overdueCnt }] : []),
+    ...(curFilter === 'soon'    || soonCnt    > 0 ? [{ key:'soon',    label:'⚡ 要対応',  count: soonCnt    }] : []),
     ...state.members.map(m => ({ key:m.id, label:m.name, count: active.filter(b=>b.currentHolder===m.id).length, color: m.color })),
     { key:'done', label:'完了', count: done.length },
   ];
@@ -1672,11 +1953,29 @@ function renderBallsList() {
 
   if (!filtered.length) {
     const preProj = (curBallProjectFilter && curBallProjectFilter !== '__none__') ? `'${curBallProjectFilter}'` : 'null';
+    const isSpecial = curFilter==='overdue' || curFilter==='soon';
+    const icon =
+      curFilter==='done' ? '✅' :
+      curFilter==='overdue' ? '🎉' :
+      curFilter==='soon' ? '👍' :
+      curFilter==='all' ? '🎉' : '😊';
+    const title =
+      curFilter==='done' ? '完了ボールなし' :
+      curFilter==='overdue' ? '期限超過のボールなし！' :
+      curFilter==='soon' ? '要対応のボールなし！' :
+      curFilter==='all' ? 'ボールなし！' :
+      `${esc(getMember(curFilter)?.name??'')}さんはボールなし`;
+    const text =
+      curFilter==='overdue' ? '期限超過のタスクはありません 🎊' :
+      curFilter==='soon' ? '48時間以内に期限を迎えるタスクはありません' :
+      curFilter==='all' ? '新しいボールを投げましょう！' :
+      'このメンバーはフリーです！';
+    const presetHolder = (curFilter==='all' || isSpecial) ? '' : curFilter;
     h += `<div class="empty">
-      <div class="empty-icon">${curFilter==='done'?'✅':curFilter==='all'?'🎉':'😊'}</div>
-      <div class="empty-title">${curFilter==='done'?'完了ボールなし':curFilter==='all'?'ボールなし！':`${esc(getMember(curFilter)?.name??'')}さんはボールなし`}</div>
-      <div class="empty-text">${curFilter==='all'?'新しいボールを投げましょう！':'このメンバーはフリーです！'}</div>
-      ${curFilter!=='done'?`<button class="btn-main" onclick="showCreateModal(null,'${curFilter==='all'?'':curFilter}',${preProj})" style="max-width:200px">🏐 投げる！</button>`:''}
+      <div class="empty-icon">${icon}</div>
+      <div class="empty-title">${title}</div>
+      <div class="empty-text">${text}</div>
+      ${curFilter!=='done'?`<button class="btn-main" onclick="showCreateModal(null,'${presetHolder}',${preProj})" style="max-width:200px">🏐 投げる！</button>`:''}
     </div>`;
     return h;
   }
@@ -1691,7 +1990,7 @@ function ballCardFull(ball) {
   const urg    = urgency(ball);
   const holder = getMember(ball.currentHolder);
   const isDone = ball.status === 'done';
-  return `<div class="ball-card ${urg} ${isDone?'done-card':''}" onclick="viewBall('${ball.id}')">
+  return swipeWrap(`<div class="ball-card ${urg} ${isDone?'done-card':''}" data-ball-id="${ball.id}" onclick="viewBall('${ball.id}')">
     <div class="card-top">
       <div class="ball-emoji">${isDone ? '✅' : ballIcon(ball.priority)}</div>
       <div class="ball-info">
@@ -1707,9 +2006,13 @@ function ballCardFull(ball) {
       <div class="holder-row">${avHTML(holder,'sm')}<span class="holder-name">${holder?esc(holder.name):'未割当'}</span></div>
       ${isDone
         ? `<span style="font-size:12px;color:var(--success);font-weight:800">完了 ✓</span>`
-        : `<button class="throw-btn" onclick="event.stopPropagation();showThrowModal('${ball.id}')">投げる ➤</button>`}
+        : `<div class="swipe-hint">
+            <span class="hint-left">‹ SOS</span>
+            <span class="hint-up">↑ 完了</span>
+            <span class="hint-right">投げる ›</span>
+          </div>`}
     </div>
-  </div>`;
+  </div>`, ball.id, isDone);
 }
 
 // ────────────────────────────────────────
@@ -1831,11 +2134,13 @@ function renderMembers() {
   state.members.forEach(m => {
     const cnt  = ballsByHolder(m.id).length;
     const done = state.balls.filter(b => b.status==='done' && b.history.some(hh=>hh.to===m.id || hh.from===m.id)).length;
-    h += `<div class="member-card">
+    const isOwner = !!m.isOwner;
+    h += `<div class="member-card${isOwner ? ' is-owner' : ''}">
       ${avHTML(m, 'lg')}
       <div class="mc-info">
-        <div class="mc-name">${esc(m.name)}</div>
+        <div class="mc-name">${esc(m.name)}${isOwner ? ' <span class="owner-crown" title="ルームオーナー">👑</span>' : ''}</div>
         <div class="mc-stat">保持中: ${cnt}個 ／ 関連完了: ${done}個</div>
+        ${!isOwner ? `<button class="mc-owner-btn" onclick="setOwner('${m.id}')">👑 オーナーにする</button>` : '<div class="mc-owner-label">👑 ルームオーナー</div>'}
       </div>
       <div class="mc-actions">
         <button class="icon-btn" onclick="showAddMember('${m.id}')">✏️</button>
@@ -2280,7 +2585,8 @@ function doAddMember() {
   const color = document.getElementById('f-mcolor')?.value || COLORS[0];
   if (!name) { toast('名前を入力してください'); document.getElementById('f-mname')?.focus(); return; }
 
-  const member = { id: uid(), name, email: email || '', color };
+  const isFirstMember = state.members.length === 0;
+  const member = { id: uid(), name, email: email || '', color, isOwner: isFirstMember };
 
   if (localMode) {
     state.members.push(member);
@@ -2291,7 +2597,7 @@ function doAddMember() {
   }
 
   hideModal();
-  toast(`👤 ${name} を追加しました！`);
+  toast(`👤 ${name} を追加しました！${isFirstMember ? '\n👑 オーナーになりました' : ''}`);
 }
 
 function doEditMember(memberId) {
@@ -2319,12 +2625,23 @@ function doEditMember(memberId) {
 }
 
 function doDeleteMember(memberId) {
+  const wasOwner = getMember(memberId)?.isOwner;
   if (localMode) {
     state.members = state.members.filter(m => m.id !== memberId);
+    if (wasOwner && state.members.length) {
+      state.members[0] = { ...state.members[0], isOwner: true };
+    }
     saveState();
     render();
   } else {
-    fsDelete('members', memberId);
+    fsDelete('members', memberId).then(() => {
+      if (wasOwner) {
+        const remaining = state.members.filter(m => m.id !== memberId);
+        if (remaining.length) {
+          fsSet('members', { ...remaining[0], isOwner: true });
+        }
+      }
+    });
   }
 
   hideModal();
@@ -2393,6 +2710,228 @@ function doDeleteProject(projectId) {
 }
 
 // ────────────────────────────────────────
+// SWIPE GESTURES
+// ────────────────────────────────────────
+function attachSwipe(el, { onSwipeUp, onSwipeRight, onSwipeLeft }) {
+  if (el._swipeAttached) return;
+  el._swipeAttached = true;
+
+  let startX = 0, startY = 0, startTime = 0;
+  let dx = 0, dy = 0;
+  let hLocked = false;
+  const H_THRESHOLD = 70;
+  const V_THRESHOLD = 60;
+  const V_TIME_MAX = 500;
+  const H_FLICK = 10;
+
+  el.addEventListener('touchstart', (e) => {
+    if (e.touches.length > 1) return;
+    const t = e.touches[0];
+    startX = t.clientX; startY = t.clientY;
+    startTime = Date.now();
+    dx = 0; dy = 0; hLocked = false;
+    el.style.transition = 'none';
+  }, { passive: true });
+
+  el.addEventListener('touchmove', (e) => {
+    if (e.touches.length > 1) return;
+    const t = e.touches[0];
+    dx = t.clientX - startX;
+    dy = t.clientY - startY;
+    if (!hLocked && Math.abs(dx) > Math.abs(dy) + H_FLICK && Math.abs(dx) > 10) {
+      hLocked = true;
+    }
+    if (hLocked) {
+      e.preventDefault();
+      el.style.transform = `translateX(${dx}px)`;
+      // 閾値を超えたら背景にも光らせるためのフラグclass
+      const wrap = el.closest('.ball-card-wrap');
+      if (wrap) {
+        const past = Math.abs(dx) > 70;
+        wrap.classList.toggle('swipe-armed-right', past && dx > 0);
+        wrap.classList.toggle('swipe-armed-left',  past && dx < 0);
+      }
+    }
+  }, { passive: false });
+
+  el.addEventListener('touchend', () => {
+    const elapsed = Date.now() - startTime;
+    let triggered = false;
+
+    if (hLocked && Math.abs(dx) > H_THRESHOLD) {
+      triggered = true;
+      if (dx > 0 && onSwipeRight) onSwipeRight();
+      else if (dx < 0 && onSwipeLeft) onSwipeLeft();
+    } else if (!hLocked && dy < -V_THRESHOLD && Math.abs(dy) > Math.abs(dx) * 2 && elapsed < V_TIME_MAX && onSwipeUp) {
+      triggered = true;
+      onSwipeUp();
+    }
+
+    el.style.transition = 'transform 0.2s';
+    el.style.transform = '';
+    const wrap = el.closest('.ball-card-wrap');
+    if (wrap) { wrap.classList.remove('swipe-armed-right', 'swipe-armed-left'); }
+
+    if (triggered) {
+      const cancelClick = (ev) => { ev.stopPropagation(); ev.preventDefault(); };
+      el.addEventListener('click', cancelClick, true);
+      setTimeout(() => el.removeEventListener('click', cancelClick, true), 400);
+    }
+  }, { passive: true });
+
+  el.addEventListener('touchcancel', () => {
+    el.style.transition = 'transform 0.2s';
+    el.style.transform = '';
+    const wrap = el.closest('.ball-card-wrap');
+    if (wrap) { wrap.classList.remove('swipe-armed-right', 'swipe-armed-left'); }
+  });
+}
+
+function attachSwipeHandlersToCards() {
+  document.querySelectorAll('.ball-card[data-ball-id]').forEach(el => {
+    const id = el.dataset.ballId;
+    const ball = getBall(id);
+    if (!ball || ball.status === 'done') return;
+    attachSwipe(el, {
+      onSwipeUp:    () => completeBall(id),
+      onSwipeRight: () => showThrowModal(id),
+      onSwipeLeft:  () => showSOSConfirm(id),
+    });
+  });
+}
+
+// ────────────────────────────────────────
+// SOS
+// ────────────────────────────────────────
+function renderSOSBanner() {
+  const list = openSOS();
+  if (!list.length) return '';
+  const owner = getOwner();
+  return `<div class="sos-banner" onclick="showSOSList()">
+    <div class="sos-banner-icon">🆘</div>
+    <div class="sos-banner-body">
+      <div class="sos-banner-title">SOS ${list.length}件</div>
+      <div class="sos-banner-sub">${owner ? `${esc(owner.name)}さん、` : ''}ヘルプ要請が届いています（タップで確認）</div>
+    </div>
+    <div class="sos-banner-chev">›</div>
+  </div>`;
+}
+
+function sendSOS(ballId = null, message = '') {
+  const ball  = ballId ? getBall(ballId) : null;
+  const owner = getOwner();
+  const sos = {
+    id: uid(),
+    ballId: ballId || null,
+    ballTitle: ball ? ball.title : '',
+    fromMemberId: ball?.currentHolder || null,
+    fromName: ball ? (getMember(ball.currentHolder)?.name || '') : '',
+    message: message || '',
+    createdAt: new Date().toISOString(),
+    resolved: false,
+    resolvedAt: null,
+  };
+
+  if (localMode) {
+    state.sos = state.sos || [];
+    state.sos.unshift(sos);
+    saveState();
+    render();
+  } else {
+    fsSet('sos', sos);
+  }
+
+  // オーナーにメール通知
+  if (owner && owner.email) {
+    const url = ball ? (generateShareUrl(ball.id) || '') : '';
+    emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+      to_name:    owner.name,
+      email:      owner.email,
+      ball_title: ball ? `[SOS] ${ball.title}` : '[SOS] ヘルプ要請',
+      due_date:   ball ? fmtDate(ball.dueDate) : '-',
+      priority:   '🆘 SOS',
+      note:       (sos.fromName ? `${sos.fromName}さんから: ` : '') + (message || 'ヘルプ要請が届いています'),
+      ball_url:   url,
+    }).catch(err => console.warn('SOSメール送信失敗:', err));
+  }
+
+  toast(`🆘 オーナー(${owner?.name || '未設定'})にSOSを送りました`);
+}
+
+function resolveSOS(sosId) {
+  const s = (state.sos || []).find(x => x.id === sosId);
+  if (!s) return;
+  const updated = { ...s, resolved: true, resolvedAt: new Date().toISOString() };
+  if (localMode) {
+    const idx = state.sos.findIndex(x => x.id === sosId);
+    if (idx !== -1) state.sos[idx] = updated;
+    saveState();
+    render();
+  } else {
+    fsSet('sos', updated);
+  }
+  toast('✅ SOSを対応済みにしました');
+}
+
+function showSOSList() {
+  const list = openSOS();
+  if (!list.length) {
+    showModal(`
+      <div class="modal-title">🆘 SOS一覧</div>
+      <div class="empty" style="padding:20px 0">
+        <div class="empty-icon">👍</div>
+        <div class="empty-text">未対応のSOSはありません</div>
+      </div>
+      <button class="btn-sub" onclick="hideModal()">閉じる</button>
+    `);
+    return;
+  }
+  let body = list.map(s => {
+    const ball = s.ballId ? getBall(s.ballId) : null;
+    return `<div class="sos-item">
+      <div class="sos-item-head">
+        <span class="sos-item-from">${esc(s.fromName || '不明')}</span>
+        <span class="sos-item-time">${fmtDT(s.createdAt)}</span>
+      </div>
+      ${ball ? `<div class="sos-item-ball" onclick="hideModal();viewBall('${ball.id}')">📌 ${esc(ball.title)}</div>` : '<div class="sos-item-ball muted">（タスク指定なし）</div>'}
+      ${s.message ? `<div class="sos-item-msg">💬 ${esc(s.message)}</div>` : ''}
+      <button class="btn-sub" style="margin-top:8px" onclick="resolveSOS('${s.id}')">✅ 対応済みにする</button>
+    </div>`;
+  }).join('');
+  showModal(`
+    <div class="modal-title">🆘 SOS一覧（${list.length}件）</div>
+    <div class="sos-list">${body}</div>
+    <button class="btn-sub" onclick="hideModal()">閉じる</button>
+  `);
+}
+
+function showSOSConfirm(ballId = null) {
+  const ball = ballId ? getBall(ballId) : null;
+  const owner = getOwner();
+  if (!owner) { toast('オーナーが設定されていません'); return; }
+  showModal(`
+    <div class="modal-title">🆘 SOSを送る</div>
+    <div style="font-size:14px;color:var(--text-light);margin-bottom:14px;line-height:1.6">
+      ${ball ? `「${esc(ball.title)}」について<br>` : ''}
+      オーナーの<strong>${esc(owner.name)}</strong>さんにヘルプ要請を送ります。
+    </div>
+    <div class="fgroup">
+      <label class="flabel">メッセージ（任意）</label>
+      <input class="finput" id="f-sos-msg" type="text" placeholder="例: 期限に間に合いそうにありません" maxlength="200" autocomplete="off">
+    </div>
+    <button class="btn-main red" onclick="doSendSOS(${ballId ? `'${ballId}'` : 'null'})">🆘 送信する</button>
+    <button class="btn-sub" onclick="hideModal()">キャンセル</button>
+  `);
+  setTimeout(() => document.getElementById('f-sos-msg')?.focus(), 120);
+}
+
+function doSendSOS(ballId) {
+  const msg = document.getElementById('f-sos-msg')?.value.trim() || '';
+  hideModal();
+  sendSOS(ballId || null, msg);
+}
+
+// ────────────────────────────────────────
 // NAVIGATION
 // ────────────────────────────────────────
 function showStatsHelp() {
@@ -2434,6 +2973,14 @@ function setTab(tab) {
   render();
 }
 function setFilter(f) { curFilter = f; render(); }
+function gotoBallsFilter(filterKey) {
+  curTab    = 'balls';
+  curBallId = null;
+  curFilter = filterKey;
+  curBallProjectFilter = null;
+  render();
+  window.scrollTo(0, 0);
+}
 function viewBall(id) { curBallId = id; render(); window.scrollTo(0,0); }
 function goBack() { curBallId = null; render(); }
 
@@ -2491,7 +3038,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') hideModal();
 function initDemo() {
   if (state.members.length || state.balls.length) return;
 
-  const m1 = { id:uid(), name:'田中さん',  color:'#3B82F6' };
+  const m1 = { id:uid(), name:'田中さん',  color:'#3B82F6', isOwner: true };
   const m2 = { id:uid(), name:'鈴木さん',  color:'#EF4444' };
   const m3 = { id:uid(), name:'佐藤さん',  color:'#10B981' };
   state.members = [m1, m2, m3];
