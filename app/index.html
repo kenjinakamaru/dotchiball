@@ -53,9 +53,7 @@
       box-shadow: 0 3px 16px rgba(255,107,53,0.35);
     }
     .header-row { display: flex; align-items: center; justify-content: space-between; }
-    .logo { display: flex; align-items: center; gap: 8px; }
-    .logo-ball { height: 40px; width: 40px; object-fit: contain; }
-    .logo-name { font-size: 20px; font-weight: 900; letter-spacing: -0.5px; color: white; }
+    .logo { font-size: 20px; font-weight: 900; letter-spacing: -0.5px; }
     .logo-sub { font-size: 10px; opacity: 0.85; font-weight: 500; display: block; margin-top: 1px; }
     .btn-throw {
       background: rgba(255,255,255,0.22);
@@ -660,14 +658,12 @@
       padding: 32px 20px 40px;
     }
     .setup-logo {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 14px;
+      font-size: 32px;
+      font-weight: 900;
+      text-align: center;
+      color: var(--primary);
       margin-bottom: 6px;
     }
-    .setup-logo img { height: 64px; width: 64px; object-fit: contain; }
-    .setup-logo-name { font-size: 40px; font-weight: 900; color: var(--primary); letter-spacing: -1px; }
     .setup-tagline {
       text-align: center;
       font-size: 13px;
@@ -909,10 +905,7 @@
   <header id="app-header">
     <div class="header-row">
       <div>
-        <div class="logo">
-          <img class="logo-ball" src="ball.png" alt="">
-          <span class="logo-name">どっちボール</span>
-        </div>
+        <div class="logo">🏐 どっち!?ボール</div>
         <span class="logo-sub">ボールは今、誰にある？</span>
         <div id="conn-badge">
           <div class="conn-dot connecting" id="conn-dot"></div>
@@ -952,10 +945,7 @@
 <!-- SETUP SCREEN -->
 <div id="setup-screen">
   <div class="setup-inner">
-    <div class="setup-logo">
-      <img src="ball.png" alt="">
-      <span class="setup-logo-name">どっちボール</span>
-    </div>
+    <div class="setup-logo">🏐 どっち!?ボール</div>
     <div class="setup-tagline">チームでリアルタイム共有</div>
 
     <div class="setup-step">
@@ -2620,9 +2610,14 @@ function sendEmailNotification(ball, toMember, note) {
 
   const setup = loadSetup();
   if (setup && setup.roomCode) {
+    // URLにルームコードがあればそれを優先し、保存内容も更新する
+    const targetRoom = urlRoom || setup.roomCode;
+    if (urlRoom && urlRoom !== setup.roomCode) {
+      saveSetup(setup.config, urlRoom);
+    }
     try {
-      initFirebase(EMBEDDED_CONFIG, setup.roomCode);
-      if (urlRoom === setup.roomCode && urlBall) _pendingBallId = urlBall;
+      initFirebase(EMBEDDED_CONFIG, targetRoom);
+      if (urlBall) _pendingBallId = urlBall;
       hideSetupScreen();
       render(); // shows spinner while listeners load
     } catch(e) {
