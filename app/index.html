@@ -6,31 +6,41 @@
   <meta name="theme-color" content="#FF6B35">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>どっち!?ボール</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@48,400,0,0">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Russo+One&display=swap">
   <style>
     :root {
       --primary: #FF6B35;
       --primary-dark: #E55A24;
-      --primary-light: rgba(255,107,53,0.1);
-      --success: #27AE60;
-      --warning: #F39C12;
-      --danger: #E74C3C;
-      --bg: #F0F2F5;
+      --primary-light: rgba(255,107,53,0.10);
+      --success: #16A34A;
+      --warning: #FF6B35;
+      --danger: #EF4444;
+      --danger-dim: #FEF2F2;
+
+      --bg: #F4F6F9;
+      --surface: #FFFFFF;
+      --surface-2: #F1F5F9;
       --card: #FFFFFF;
-      --text: #1A202C;
-      --text-light: #718096;
+      --text: #0B1220;
+      --text-light: #64748B;
+      --text-mute: #94A3B8;
       --border: #E2E8F0;
-      --shadow: 0 2px 12px rgba(0,0,0,0.07);
-      --shadow-md: 0 4px 20px rgba(0,0,0,0.12);
-      --r: 16px;
+
+      --shadow: 0 1px 2px rgba(15,23,42,0.06);
+      --shadow-md: 0 8px 24px rgba(15,23,42,0.10);
+      --r: 14px;
       --r-sm: 10px;
     }
     * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Noto Sans JP', 'YuGothic', sans-serif;
-      background: var(--bg);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Noto Sans JP', 'YuGothic', sans-serif;
+      background: #DDE3EB;
       color: var(--text);
       min-height: 100dvh;
       overflow-x: hidden;
+      font-feature-settings: 'cv11';
     }
     #app {
       max-width: 480px;
@@ -40,61 +50,67 @@
       position: relative;
       padding-bottom: 80px;
     }
-    @media(min-width:480px) { #app { box-shadow: 0 0 60px rgba(0,0,0,0.15); } }
+    @media(min-width:480px) { #app { box-shadow: 0 24px 64px rgba(15,23,42,0.18); } }
 
     /* ── HEADER ── */
     #app-header {
-      background: linear-gradient(135deg, #FF6B35 0%, #FF8C42 100%);
-      color: white;
+      background: var(--surface);
+      color: var(--text);
       padding: 14px 16px;
       position: sticky;
       top: 0;
       z-index: 100;
-      box-shadow: 0 3px 16px rgba(255,107,53,0.35);
+      border-bottom: 1px solid var(--border);
     }
     .header-row { display: flex; align-items: center; justify-content: space-between; }
-    .logo { display: flex; align-items: center; gap: 8px; }
-    .logo-ball { height: 40px; width: 40px; object-fit: contain; }
-    .logo-name { font-size: 20px; font-weight: 900; letter-spacing: -0.5px; color: white; }
-    .logo-sub { font-size: 10px; opacity: 0.85; font-weight: 500; display: block; margin-top: 1px; }
-    .btn-throw {
-      background: rgba(255,255,255,0.22);
-      color: white;
-      border: 1.5px solid rgba(255,255,255,0.5);
-      padding: 8px 18px;
-      border-radius: 24px;
-      font-size: 14px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.15s;
-      font-family: inherit;
-      backdrop-filter: blur(4px);
+    .logo {
+      display: inline-flex; align-items: center; gap: 10px;
     }
-    .btn-throw:active { transform: scale(0.93); background: rgba(255,255,255,0.35); }
+    .logo-ball { height: 36px; width: 36px; object-fit: contain; }
+    .logo-name { font-size: 17px; font-weight: 900; letter-spacing: -0.3px; color: var(--primary); }
+    .logo-sub { font-size: 10px; color: var(--text-mute); font-weight: 700; display: block; margin-top: 4px; letter-spacing: 1.2px; text-transform: uppercase; }
+    .btn-throw {
+      background: var(--primary);
+      color: #FFFFFF;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 999px;
+      font-family: 'Russo One', 'Inter', sans-serif;
+      font-size: 14px;
+      font-weight: 400;
+      letter-spacing: 1.2px;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s;
+      text-transform: uppercase;
+      box-shadow: 0 4px 14px rgba(255,107,53,0.4);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-throw:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(255,107,53,0.5);
+    }
+    .btn-throw:active {
+      transform: translateY(1px);
+      box-shadow: 0 2px 8px rgba(255,107,53,0.3);
+    }
 
     /* ── CONNECTION BADGE ── */
     #conn-badge {
       display: none;
       align-items: center;
       gap: 5px;
-      font-size: 11px;
-      font-weight: 700;
-      opacity: 0.9;
-      margin-top: 4px;
-    }
-    .conn-dot { width: 8px; height: 8px; border-radius: 50%; background: #27AE60; flex-shrink: 0; }
-    .conn-dot.offline { background: #E74C3C; }
-    .conn-dot.connecting { background: #F59E0B; animation: pulse 1s ease-in-out infinite; }
-    #room-display {
       font-size: 10px;
-      opacity: 0.7;
-      font-weight: 600;
-      margin-top: 2px;
-      cursor: pointer;
-      display: none;
+      font-weight: 800;
+      color: var(--text-mute);
+      margin-top: 6px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
     }
-    #room-display:hover { opacity: 1; }
-
+    .conn-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--success); flex-shrink: 0; }
+    .conn-dot.offline { background: var(--danger); }
+    .conn-dot.connecting { background: var(--primary); animation: pulse 1s ease-in-out infinite; }
     /* ── BOTTOM NAV ── */
     #bottom-nav {
       position: fixed;
@@ -103,12 +119,11 @@
       transform: translateX(-50%);
       width: 100%;
       max-width: 480px;
-      background: white;
+      background: var(--surface);
       border-top: 1px solid var(--border);
       display: flex;
-      padding: 6px 0 max(6px, env(safe-area-inset-bottom));
+      padding: 8px 0 max(10px, env(safe-area-inset-bottom));
       z-index: 100;
-      box-shadow: 0 -2px 16px rgba(0,0,0,0.08);
     }
     .nav-item {
       flex: 1;
@@ -120,105 +135,309 @@
       border: none;
       background: none;
       cursor: pointer;
-      color: var(--text-light);
+      color: var(--text-mute);
       transition: color 0.2s;
       font-family: inherit;
     }
     .nav-item.active { color: var(--primary); }
     .nav-icon { font-size: 22px; line-height: 1; }
-    .nav-label { font-size: 10px; font-weight: 700; }
+    .nav-label { font-size: 9px; font-weight: 900; letter-spacing: 1.2px; text-transform: uppercase; }
 
     /* ── MAIN CONTENT ── */
-    #main-content { padding: 14px 14px 0; }
+    #main-content { padding: 16px 14px 0; }
 
     /* ── SECTION TITLE ── */
     .sec-title {
-      font-size: 11px;
-      font-weight: 800;
-      color: var(--text-light);
+      font-size: 10px;
+      font-weight: 900;
+      color: var(--text-mute);
       text-transform: uppercase;
-      letter-spacing: 1px;
-      margin: 20px 0 10px;
+      letter-spacing: 2px;
+      margin: 22px 4px 10px;
     }
-    .sec-title:first-child { margin-top: 0; }
+    .sec-title:first-child { margin-top: 4px; }
 
-    /* ── STATS GRID ── */
+    /* ── STATS GRID (Scoreboard) ── */
     .stats-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
+      gap: 8px;
       margin-bottom: 18px;
     }
     .stat-card {
-      background: white;
-      border-radius: var(--r-sm);
-      padding: 14px 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 14px 10px 12px;
       text-align: center;
-      box-shadow: var(--shadow);
     }
-    .stat-num { font-size: 30px; font-weight: 900; color: var(--text); line-height: 1; }
-    .stat-lbl { font-size: 10px; color: var(--text-light); font-weight: 700; margin-top: 4px; }
+    .stat-num {
+      font-size: 38px;
+      font-weight: 900;
+      color: var(--text);
+      line-height: 0.95;
+      letter-spacing: -1.5px;
+      font-feature-settings: 'tnum';
+    }
+    .stat-lbl {
+      font-size: 9px;
+      color: var(--text-mute);
+      font-weight: 800;
+      margin-top: 6px;
+      letter-spacing: 1.4px;
+      text-transform: uppercase;
+    }
+    .stat-lbl-jp {
+      display: block;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text-light);
+      letter-spacing: 0;
+      text-transform: none;
+      margin-top: 2px;
+    }
+    .stat-card.danger { border-color: var(--danger); background: var(--danger-dim); }
     .stat-card.danger .stat-num { color: var(--danger); }
-    .stat-card.warn .stat-num { color: var(--warning); }
+    .stat-card.warn   { border-color: var(--primary); background: var(--primary-light); }
+    .stat-card.warn .stat-num   { color: var(--primary); }
+    .stat-card.tappable { cursor: pointer; transition: transform 0.15s, border-color 0.15s; }
+    .stat-card.tappable:active { transform: scale(0.96); }
+
+    /* ── SOS BANNER ── */
+    .sos-banner {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--surface);
+      border: 1px solid var(--danger);
+      border-left: 4px solid var(--danger);
+      border-radius: var(--r);
+      padding: 12px 14px;
+      margin-bottom: 16px;
+      cursor: pointer;
+      transition: transform 0.15s;
+      box-shadow: 0 2px 10px rgba(239,68,68,0.15);
+    }
+    .sos-banner:active { transform: scale(0.98); }
+    .sos-banner-icon { font-size: 26px; flex-shrink: 0; }
+    .sos-banner-body { flex: 1; min-width: 0; }
+    .sos-banner-title { font-size: 12px; font-weight: 900; color: var(--danger); letter-spacing: 1.2px; text-transform: uppercase; }
+    .sos-banner-sub { font-size: 12px; color: var(--text-light); margin-top: 2px; }
+    .sos-banner-chev { font-size: 24px; color: var(--danger); font-weight: 900; }
+    .sos-item {
+      background: var(--surface);
+      border: 1px solid var(--danger);
+      border-left: 3px solid var(--danger);
+      border-radius: var(--r-sm);
+      padding: 12px;
+      margin-bottom: 10px;
+    }
+    .sos-item-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 6px;
+    }
+    .sos-item-from { font-size: 13px; font-weight: 900; color: var(--danger); letter-spacing: 0.3px; }
+    .sos-item-time { font-size: 11px; color: var(--text-mute); font-feature-settings: 'tnum'; }
+    .sos-item-ball {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+      padding: 6px 10px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      cursor: pointer;
+      margin-bottom: 4px;
+    }
+    .sos-item-ball.muted { color: var(--text-mute); font-weight: 400; cursor: default; }
+    .sos-item-msg { font-size: 13px; color: var(--text-light); margin-top: 4px; }
+    .sos-list { max-height: 60vh; overflow-y: auto; margin-bottom: 10px; }
 
     /* ── BALL CARD ── */
     .ball-card {
-      background: var(--card);
+      background: var(--surface);
+      border: 1px solid var(--border);
       border-radius: var(--r);
       padding: 14px;
-      margin-bottom: 10px;
-      box-shadow: var(--shadow);
+      margin-bottom: 8px;
       cursor: pointer;
-      transition: transform 0.15s, box-shadow 0.15s;
-      border-left: 4px solid transparent;
+      transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+      touch-action: pan-y;
+      user-select: none;
+      position: relative;
+      z-index: 1;
+      box-shadow: var(--shadow);
     }
-    .ball-card:active { transform: scale(0.98); box-shadow: var(--shadow-md); }
-    .ball-card.urgent  { border-left-color: var(--danger); }
-    .ball-card.warning { border-left-color: var(--warning); }
-    .ball-card.normal  { border-left-color: var(--success); }
-    .ball-card.no-date { border-left-color: #CBD5E0; }
-    .ball-card.done-card { opacity: 0.55; border-left-color: #A0AEC0; }
+    .ball-card:active { transform: scale(0.98); border-color: var(--text-mute); }
+    .ball-card.urgent  { border-color: rgba(239,68,68,0.4); }
+    .ball-card.done-card { opacity: 0.55; }
 
-    .card-top { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
-    .ball-emoji { font-size: 26px; flex-shrink: 0; line-height: 1; margin-top: 1px; }
-    .ball-info { flex: 1; min-width: 0; }
-    .ball-title { font-size: 15px; font-weight: 700; color: var(--text); line-height: 1.35; margin-bottom: 5px; }
-    .ball-desc { font-size: 12px; color: var(--text-light); line-height: 1.4; margin-bottom: 6px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-    .badges { display: flex; gap: 5px; flex-wrap: wrap; }
-
-    .badge {
-      font-size: 11px;
-      font-weight: 700;
-      padding: 2px 9px;
-      border-radius: 20px;
+    /* ── SWIPE WRAPPER ── */
+    .ball-card-wrap {
+      position: relative;
+      margin-bottom: 8px;
+      border-radius: var(--r);
+      overflow: hidden;
+      box-shadow: var(--shadow);
     }
-    .badge.urgent  { background: #FEE2E2; color: var(--danger); }
-    .badge.warning { background: #FEF3C7; color: #D97706; }
-    .badge.normal  { background: #DCFCE7; color: #16A34A; }
-    .badge.no-date { background: #F1F5F9; color: var(--text-light); }
-    .badge.high    { background: #FEE2E2; color: var(--danger); }
-    .badge.medium  { background: #FEF3C7; color: #D97706; }
-    .badge.low     { background: #DCFCE7; color: #16A34A; }
+    .ball-card-wrap .ball-card { margin-bottom: 0; box-shadow: none; }
+    .swipe-bg {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 50%;
+      display: flex;
+      align-items: center;
+      font-weight: 900;
+      font-size: 16px;
+      color: white;
+      gap: 8px;
+      padding: 0 22px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .swipe-bg-throw {
+      left: 0;
+      background: var(--primary);
+      color: #000;
+      justify-content: flex-start;
+    }
+    .swipe-bg-sos {
+      right: 0;
+      background: var(--danger);
+      justify-content: flex-end;
+    }
+    /* 閾値超過時の発光 */
+    .ball-card-wrap.swipe-armed-right .swipe-bg-throw,
+    .ball-card-wrap.swipe-armed-left  .swipe-bg-sos {
+      box-shadow: inset 0 0 0 3px rgba(255,255,255,0.5);
+      animation: armedPulse 0.5s ease-in-out infinite;
+    }
+    @keyframes armedPulse {
+      0%, 100% { filter: brightness(1); }
+      50%      { filter: brightness(1.25); }
+    }
+    /* 上スワイプ閾値超過時 */
+    .ball-card-wrap.swipe-armed-up {
+      box-shadow: 0 0 0 2px var(--success), 0 4px 18px rgba(34,197,94,0.4);
+    }
+    .ball-card-wrap.swipe-armed-up::after {
+      content: 'Release to Complete';
+      position: absolute;
+      top: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--success);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 900;
+      padding: 4px 12px;
+      border-radius: 999px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      pointer-events: none;
+      z-index: 2;
+    }
 
-    .card-bottom { display: flex; align-items: center; justify-content: space-between; }
-    .holder-row { display: flex; align-items: center; gap: 7px; }
-    .holder-name { font-size: 13px; font-weight: 600; color: var(--text); }
+    /* ── CARD ROW: urgency + time + priority ── */
+    .card-row1 {
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 8px;
+    }
+    .urg-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .urg-dot.urgent { background: var(--danger); box-shadow: 0 0 8px var(--danger); }
+    .urg-dot.warning { background: var(--primary); }
+    .urg-dot.normal { background: #475569; }
+    .urg-dot.no-date { background: #2D3748; }
+    .card-time {
+      font-size: 11px; font-weight: 800;
+      color: var(--text-light); font-feature-settings: 'tnum';
+      letter-spacing: 0.3px;
+    }
+    .card-time.urgent { color: var(--danger); }
+    .card-time.warning { color: var(--primary); }
+    .card-prio {
+      margin-left: auto;
+      font-size: 10px; font-weight: 900; letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: var(--text-mute);
+    }
+    .card-prio.high { color: var(--danger); }
+    .card-prio.medium { color: var(--primary); }
 
-    /* ── AVATAR ── */
+    .ball-title {
+      font-size: 15px; font-weight: 800; color: var(--text);
+      line-height: 1.35;
+      letter-spacing: -0.2px;
+      margin-bottom: 4px;
+    }
+    .ball-desc {
+      font-size: 12px; color: var(--text-light); line-height: 1.5;
+      margin-bottom: 4px;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    }
+
+    /* ── HOLDER ROW (Full card only) ── */
+    .holder-row {
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 10px;
+    }
+    .holder-name { font-size: 13px; font-weight: 800; color: var(--text); }
+
+    /* ── SWIPE HINT BAR ── */
+    .swipe-hint-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding-top: 10px;
+      margin-top: 10px;
+      border-top: 1px solid var(--border);
+      color: var(--text-mute);
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: 1.4px;
+      text-transform: uppercase;
+    }
+    .swipe-hint-bar .arr {
+      display: inline-flex; align-items: center; gap: 2px;
+    }
+    .swipe-hint-bar .material-symbols-outlined { font-size: 18px; line-height: 1; }
+
+    /* 旧 badges スタイルは互換のため残す（未使用想定だが安全） */
+    .badges { display: none; }
+
+    /* ── AVATAR (Jersey style) ── */
     .av {
-      border-radius: 50%;
+      border-radius: 10px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      font-weight: 800;
+      font-weight: 900;
       color: white;
       flex-shrink: 0;
-      font-size: 13px;
-      width: 32px;
-      height: 32px;
+      font-size: 14px;
+      width: 34px;
+      height: 34px;
+      position: relative;
+      background-clip: padding-box;
     }
-    .av-sm { width: 26px; height: 26px; font-size: 11px; }
-    .av-lg { width: 44px; height: 44px; font-size: 16px; }
+    .av::after {
+      content: '';
+      position: absolute;
+      inset: 3px;
+      border: 1px solid rgba(255,255,255,0.35);
+      border-radius: 7px;
+      pointer-events: none;
+    }
+    .av-sm { width: 28px; height: 28px; font-size: 12px; border-radius: 8px; }
+    .av-sm::after { inset: 2px; border-radius: 6px; }
+    .av-lg { width: 48px; height: 48px; font-size: 18px; border-radius: 12px; }
+    .av-lg::after { inset: 4px; border-radius: 8px; }
 
     /* ── THROW BTN ── */
     .throw-btn {
@@ -238,26 +457,40 @@
 
     /* ── PLAYER SECTION (dashboard) ── */
     .player-section {
-      background: white;
-      border-radius: var(--r);
-      padding: 14px;
-      margin-bottom: 10px;
-      box-shadow: var(--shadow);
+      margin-bottom: 18px;
     }
-    .ps-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-    .ps-left { display: flex; align-items: center; gap: 10px; }
-    .ps-name { font-size: 16px; font-weight: 800; }
+    .ps-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 10px;
+      padding: 0 4px;
+    }
+    .ps-left { display: flex; align-items: center; gap: 12px; }
+    .ps-name { font-size: 15px; font-weight: 900; letter-spacing: -0.2px; }
+    .ps-meta { font-size: 10px; color: var(--text-mute); font-weight: 800; letter-spacing: 1.2px; text-transform: uppercase; margin-top: 2px; }
+    .owner-mark { font-size: 11px; margin-left: 2px; }
+    .more-btn {
+      width: 100%; text-align: center;
+      font-size: 10px; font-weight: 900;
+      color: var(--text-mute);
+      letter-spacing: 1.4px; text-transform: uppercase;
+      margin-top: 8px;
+      background: none; border: 1px dashed var(--border);
+      border-radius: var(--r-sm);
+      cursor: pointer; padding: 10px 0;
+      font-family: inherit;
+      transition: all 0.15s;
+    }
+    .more-btn:active { background: var(--surface); color: var(--text); }
     .ball-count {
-      background: var(--primary);
-      color: white;
-      font-size: 12px;
-      font-weight: 800;
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 900;
+      padding: 5px 12px;
+      border-radius: 999px;
+      font-feature-settings: 'tnum';
+      box-shadow: var(--shadow);
     }
 
     /* ── FILTER TABS ── */
@@ -277,35 +510,37 @@
       gap: 5px;
       padding: 8px 14px;
       border-radius: 20px;
-      border: 2px solid var(--border);
-      background: white;
-      font-size: 12px;
-      font-weight: 700;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      font-size: 11px;
+      font-weight: 800;
       cursor: pointer;
       white-space: nowrap;
       transition: all 0.15s;
       font-family: inherit;
       color: var(--text-light);
+      letter-spacing: 0.3px;
     }
-    .ftab.active { background: var(--primary); border-color: var(--primary); color: white; }
-    .ftab .cnt { background: rgba(255,255,255,0.3); border-radius: 10px; padding: 0 6px; font-size: 10px; }
-    .ftab:not(.active) .cnt { background: var(--bg); color: var(--text-light); }
-    .ftab-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .ftab.active { background: var(--primary); border-color: var(--primary); color: #000; }
+    .ftab .cnt { background: rgba(0,0,0,0.25); border-radius: 10px; padding: 0 6px; font-size: 10px; font-weight: 900; }
+    .ftab:not(.active) .cnt { background: var(--surface-2); color: var(--text-mute); }
+    .ftab-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 
     /* ── MODAL ── */
     #modal-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(15,20,40,0.55);
+      background: rgba(0,0,0,0.65);
       z-index: 200;
       display: flex;
       align-items: flex-end;
       justify-content: center;
-      backdrop-filter: blur(3px);
+      backdrop-filter: blur(4px);
     }
     #modal-overlay.hidden { display: none; }
     .modal-sheet {
-      background: white;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
       border-radius: 24px 24px 0 0;
       width: 100%;
       max-width: 480px;
@@ -314,36 +549,39 @@
       padding: 0 16px max(20px, env(safe-area-inset-bottom));
       animation: slideUp 0.3s cubic-bezier(0.32, 0.72, 0, 1);
       overscroll-behavior: contain;
+      color: var(--text);
     }
     @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
     .modal-handle { width: 36px; height: 4px; background: var(--border); border-radius: 2px; margin: 12px auto 16px; }
-    .modal-title { font-size: 20px; font-weight: 900; margin-bottom: 18px; }
+    .modal-title { font-size: 18px; font-weight: 900; margin-bottom: 18px; letter-spacing: -0.2px; }
 
     /* ── FORMS ── */
     .fgroup { margin-bottom: 16px; }
     .flabel {
       display: block;
-      font-size: 11px;
-      font-weight: 800;
-      color: var(--text-light);
+      font-size: 10px;
+      font-weight: 900;
+      color: var(--text-mute);
       text-transform: uppercase;
-      letter-spacing: 0.7px;
-      margin-bottom: 7px;
+      letter-spacing: 1.5px;
+      margin-bottom: 8px;
     }
     .finput {
       width: 100%;
       padding: 12px 14px;
-      border: 2px solid var(--border);
+      border: 1px solid var(--border);
       border-radius: var(--r-sm);
-      font-size: 16px;
+      font-size: 15px;
       font-family: inherit;
       transition: border-color 0.2s;
-      background: var(--bg);
+      background: var(--surface-2);
       color: var(--text);
       outline: none;
       -webkit-appearance: none;
     }
-    .finput:focus { border-color: var(--primary); background: white; }
+    .finput:focus { border-color: var(--primary); background: var(--surface); }
+    .finput:disabled { opacity: 0.45; cursor: not-allowed; background: var(--surface-2); }
+    .hint-disabled { color: var(--text-mute); font-weight: 700; margin-left: 6px; text-transform: none; letter-spacing: 0; }
     textarea.finput { resize: none; min-height: 80px; }
 
     /* Player selector */
@@ -354,12 +592,13 @@
       align-items: center;
       gap: 5px;
       padding: 12px 6px 10px;
-      border: 2px solid var(--border);
+      border: 1px solid var(--border);
       border-radius: var(--r-sm);
       cursor: pointer;
       transition: all 0.15s;
-      background: white;
+      background: var(--surface-2);
       font-family: inherit;
+      color: var(--text);
     }
     .p-opt.sel { border-color: var(--primary); background: var(--primary-light); }
     .p-opt-name { font-size: 11px; font-weight: 700; color: var(--text); text-align: center; line-height: 1.3; }
@@ -369,20 +608,21 @@
     .pri-opt {
       flex: 1;
       padding: 10px 4px;
-      border: 2px solid var(--border);
+      border: 1px solid var(--border);
       border-radius: var(--r-sm);
       text-align: center;
       cursor: pointer;
-      font-size: 12px;
-      font-weight: 800;
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 0.5px;
       transition: all 0.15s;
-      background: white;
+      background: var(--surface-2);
       font-family: inherit;
-      color: var(--text-light);
+      color: var(--text-mute);
     }
-    .pri-opt.sel.high   { border-color: var(--danger);  background: #FEE2E2; color: var(--danger); }
-    .pri-opt.sel.medium { border-color: #D97706; background: #FEF3C7; color: #D97706; }
-    .pri-opt.sel.low    { border-color: var(--success); background: #DCFCE7; color: var(--success); }
+    .pri-opt.sel.high   { border-color: var(--danger);  background: var(--danger-dim); color: var(--danger); }
+    .pri-opt.sel.medium { border-color: var(--primary); background: var(--primary-light); color: var(--primary); }
+    .pri-opt.sel.low    { border-color: var(--text-mute); background: var(--surface); color: var(--text-light); }
 
     /* Color picker */
     .color-row { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -394,68 +634,73 @@
       cursor: pointer;
       transition: all 0.15s;
     }
-    .cswatch.sel { border-color: var(--text); transform: scale(1.18); box-shadow: 0 0 0 2px white inset; }
+    .cswatch.sel { border-color: var(--text); transform: scale(1.18); box-shadow: 0 0 0 2px var(--bg) inset; }
 
     /* Submit / secondary buttons */
     .btn-main {
       width: 100%;
-      padding: 15px;
-      background: linear-gradient(135deg, #FF6B35, #FF8C42);
-      color: white;
+      padding: 14px;
+      background: var(--primary);
+      color: #000;
       border: none;
-      border-radius: var(--r);
-      font-size: 16px;
+      border-radius: var(--r-sm);
+      font-size: 14px;
       font-weight: 900;
       cursor: pointer;
       transition: all 0.15s;
       font-family: inherit;
       margin-top: 6px;
-      box-shadow: 0 4px 16px rgba(255,107,53,0.38);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
     }
-    .btn-main:active { transform: scale(0.98); }
-    .btn-main:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
-    .btn-main.green { background: linear-gradient(135deg, #27AE60, #229954); box-shadow: 0 4px 16px rgba(39,174,96,0.35); }
-    .btn-main.red { background: linear-gradient(135deg, #E74C3C, #C0392B); box-shadow: 0 4px 16px rgba(231,76,60,0.3); }
+    .btn-main:active { transform: scale(0.98); background: var(--primary-dark); }
+    .btn-main:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-main.green { background: var(--success); }
+    .btn-main.red   { background: var(--danger); color: #fff; }
     .btn-sub {
       width: 100%;
-      padding: 13px;
-      background: var(--bg);
+      padding: 12px;
+      background: var(--surface-2);
       color: var(--text);
-      border: none;
-      border-radius: var(--r);
-      font-size: 14px;
-      font-weight: 700;
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
       cursor: pointer;
       transition: all 0.15s;
       font-family: inherit;
       margin-top: 6px;
     }
-    .btn-sub.danger { background: #FEE2E2; color: var(--danger); }
+    .btn-sub:active { background: var(--surface); }
+    .btn-sub.danger { background: var(--danger-dim); color: var(--danger); border-color: var(--danger); }
 
     /* ── DETAIL VIEW ── */
     .detail-hero {
-      background: linear-gradient(135deg, #FF6B35 0%, #FF8C42 100%);
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
       padding: 14px;
-      color: white;
-      margin: -14px -14px 14px;
+      color: var(--text);
+      margin: -16px -14px 14px;
     }
-    .detail-hero.urg  { background: linear-gradient(135deg, #E74C3C, #C0392B); }
-    .detail-hero.done { background: linear-gradient(135deg, #27AE60, #229954); }
+    .detail-hero.urg  { border-bottom-color: var(--danger); background: linear-gradient(180deg, rgba(239,68,68,0.10), var(--surface)); }
+    .detail-hero.done { border-bottom-color: var(--success); background: linear-gradient(180deg, rgba(34,197,94,0.10), var(--surface)); }
     .back-btn {
       display: flex;
       align-items: center;
       gap: 3px;
-      color: rgba(255,255,255,0.88);
+      color: var(--text-light);
       background: none;
       border: none;
-      font-size: 14px;
-      font-weight: 700;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
       cursor: pointer;
       margin-bottom: 10px;
       font-family: inherit;
       padding: 0;
     }
-    .detail-title { font-size: 22px; font-weight: 900; line-height: 1.3; margin-bottom: 10px; }
+    .detail-title { font-size: 22px; font-weight: 900; line-height: 1.3; margin-bottom: 10px; letter-spacing: -0.3px; }
     .hero-badges { display: flex; gap: 7px; flex-wrap: wrap; align-items: center; }
     .hero-badge {
       display: inline-flex;
@@ -463,32 +708,34 @@
       gap: 4px;
       padding: 4px 10px;
       border-radius: 12px;
-      background: rgba(255,255,255,0.2);
-      font-size: 12px;
-      font-weight: 700;
-      color: white;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--text-light);
+      letter-spacing: 0.3px;
     }
 
     /* Info card */
     .info-card {
-      background: white;
+      background: var(--surface);
+      border: 1px solid var(--border);
       border-radius: var(--r);
       padding: 14px;
       margin-bottom: 10px;
-      box-shadow: var(--shadow);
     }
     .info-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 8px 0;
+      padding: 9px 0;
       border-bottom: 1px solid var(--border);
     }
     .info-row:last-child { border-bottom: none; padding-bottom: 0; }
     .info-row:first-child { padding-top: 0; }
-    .info-key { font-size: 11px; font-weight: 800; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px; }
-    .info-val { font-size: 14px; font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 6px; }
-    .info-val.muted { color: var(--text-light); font-weight: 400; font-size: 13px; }
+    .info-key { font-size: 10px; font-weight: 900; color: var(--text-mute); text-transform: uppercase; letter-spacing: 1.2px; }
+    .info-val { font-size: 14px; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 6px; }
+    .info-val.muted { color: var(--text-mute); font-weight: 500; font-size: 13px; }
 
     /* ── TIMELINE ── */
     .timeline { position: relative; padding-left: 26px; }
@@ -501,64 +748,90 @@
       width: 2px;
       background: var(--border);
     }
-    .tl-item { position: relative; margin-bottom: 14px; }
+    .tl-item { position: relative; margin-bottom: 12px; }
     .tl-dot {
       position: absolute;
       left: -21px;
       top: 3px;
-      width: 14px;
-      height: 14px;
+      width: 12px;
+      height: 12px;
       border-radius: 50%;
       background: var(--primary);
-      border: 2.5px solid white;
+      border: 2.5px solid var(--bg);
       box-shadow: 0 0 0 2px var(--primary);
     }
     .tl-dot.done-dot { background: var(--success); box-shadow: 0 0 0 2px var(--success); }
-    .tl-dot.create-dot { background: #3498DB; box-shadow: 0 0 0 2px #3498DB; }
-    .tl-body { background: white; border-radius: var(--r-sm); padding: 10px 12px; box-shadow: var(--shadow); }
+    .tl-dot.create-dot { background: var(--primary); box-shadow: 0 0 0 2px var(--primary); }
+    .tl-body { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-sm); padding: 10px 12px; }
     .tl-head { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-bottom: 3px; }
-    .tl-action { font-size: 12px; font-weight: 700; flex: 1; }
-    .tl-time { font-size: 10px; color: var(--text-light); white-space: nowrap; }
+    .tl-action { font-size: 12px; font-weight: 700; flex: 1; color: var(--text); }
+    .tl-time { font-size: 10px; color: var(--text-mute); white-space: nowrap; font-feature-settings: 'tnum'; }
     .tl-note { font-size: 12px; color: var(--text-light); margin-top: 3px; }
-    .tl-note a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    .tl-note a { color: var(--primary); text-decoration: none; font-weight: 700; }
     .tl-note a:hover { text-decoration: underline; }
 
     /* ── MEMBER CARD ── */
     .member-card {
-      background: white;
+      background: var(--surface);
+      border: 1px solid var(--border);
       border-radius: var(--r);
       padding: 14px;
-      margin-bottom: 10px;
-      box-shadow: var(--shadow);
+      margin-bottom: 8px;
       display: flex;
       align-items: center;
       gap: 12px;
     }
     .mc-info { flex: 1; }
-    .mc-name { font-size: 15px; font-weight: 800; }
-    .mc-stat { font-size: 12px; color: var(--text-light); margin-top: 2px; }
+    .mc-name { font-size: 15px; font-weight: 900; letter-spacing: -0.2px; }
+    .mc-stat { font-size: 11px; color: var(--text-mute); margin-top: 3px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; }
     .mc-actions { display: flex; gap: 6px; }
     .icon-btn {
       width: 36px;
       height: 36px;
-      border-radius: 50%;
-      border: none;
-      background: var(--bg);
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
       cursor: pointer;
-      font-size: 15px;
+      font-size: 14px;
       display: flex;
       align-items: center;
       justify-content: center;
       transition: all 0.15s;
     }
-    .icon-btn:active { transform: scale(0.9); }
-    .icon-btn.del { background: #FEE2E2; }
+    .icon-btn:active { transform: scale(0.9); background: var(--surface); }
+    .icon-btn.del { background: var(--danger-dim); border-color: var(--danger); color: var(--danger); }
+    .member-card.is-owner { border-color: var(--primary); background: var(--surface); }
+    .owner-crown { font-size: 14px; margin-left: 4px; }
+    .mc-owner-btn {
+      margin-top: 8px;
+      padding: 6px 12px;
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      background: var(--surface-2);
+      color: var(--primary);
+      border: 1px solid var(--primary);
+      border-radius: 999px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.15s;
+    }
+    .mc-owner-btn:active { transform: scale(0.95); background: var(--primary-light); }
+    .mc-owner-label {
+      margin-top: 6px;
+      font-size: 10px;
+      font-weight: 900;
+      color: var(--primary);
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+    }
 
     /* ── EMPTY STATE ── */
-    .empty { text-align: center; padding: 40px 16px; }
-    .empty-icon { font-size: 64px; margin-bottom: 14px; }
-    .empty-title { font-size: 20px; font-weight: 900; margin-bottom: 8px; }
-    .empty-text { color: var(--text-light); font-size: 14px; line-height: 1.7; margin-bottom: 20px; }
+    .empty { text-align: center; padding: 40px 16px; color: var(--text-light); }
+    .empty-icon { font-size: 56px; margin-bottom: 14px; opacity: 0.6; }
+    .empty-title { font-size: 18px; font-weight: 900; margin-bottom: 8px; color: var(--text); letter-spacing: -0.2px; }
+    .empty-text { color: var(--text-mute); font-size: 13px; line-height: 1.7; margin-bottom: 20px; }
 
     /* ── THROW ANIMATION ── */
     #throw-anim {
@@ -569,10 +842,10 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background: rgba(255,107,53,0.08);
+      background: rgba(255,107,53,0.1);
     }
     #throw-anim.hidden { display: none; }
-    .ball-fly { font-size: 64px; animation: ballFly 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
+    .ball-fly { width: 72px; height: 72px; object-fit: contain; animation: ballFly 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
     @keyframes ballFly {
       0%   { transform: scale(0.3) rotate(-720deg); opacity: 0; }
       40%  { transform: scale(1.4) rotate(-120deg); opacity: 1; }
@@ -583,7 +856,7 @@
     .done-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(39,174,96,0.92);
+      background: rgba(34,197,94,0.92);
       z-index: 600;
       display: flex;
       flex-direction: column;
@@ -594,8 +867,8 @@
     }
     @keyframes fadeAway { to { opacity: 0; pointer-events: none; } }
     .done-icon { font-size: 80px; animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-    .done-text { font-size: 26px; font-weight: 900; margin-top: 14px; }
-    .done-sub  { font-size: 14px; opacity: 0.85; margin-top: 6px; }
+    .done-text { font-size: 26px; font-weight: 900; margin-top: 14px; letter-spacing: -0.3px; }
+    .done-sub  { font-size: 13px; opacity: 0.85; margin-top: 6px; font-weight: 700; letter-spacing: 0.5px; }
     @keyframes popIn { from { transform: scale(0); } to { transform: scale(1); } }
 
     /* ── TOAST ── */
@@ -604,12 +877,14 @@
       bottom: 96px;
       left: 50%;
       transform: translateX(-50%) translateY(16px);
-      background: #1A202C;
-      color: white;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
       padding: 11px 22px;
-      border-radius: 24px;
-      font-size: 13px;
-      font-weight: 700;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.3px;
       opacity: 0;
       transition: all 0.25s;
       z-index: 600;
@@ -624,8 +899,8 @@
     .pulse { animation: pulse 1.4s ease-in-out infinite; }
     @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.55; } }
 
-    /* ── OVERDUE GLOW ── */
-    .ball-card.urgent { box-shadow: 0 2px 12px rgba(231,76,60,0.18); }
+    /* ── DIVIDER ── */
+    .divider { height: 1px; background: var(--border); margin: 14px 0; }
 
     /* ── DIVIDER ── */
     .divider { height: 1px; background: var(--border); margin: 14px 0; }
@@ -646,7 +921,8 @@
     #setup-screen {
       position: fixed;
       inset: 0;
-      background: white;
+      background: var(--bg);
+      color: var(--text);
       z-index: 500;
       overflow-y: auto;
       display: flex;
@@ -663,29 +939,33 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 14px;
+      gap: 10px;
       margin-bottom: 6px;
     }
-    .setup-logo img { height: 64px; width: 64px; object-fit: contain; }
-    .setup-logo-name { font-size: 40px; font-weight: 900; color: var(--primary); letter-spacing: -1px; }
+    .setup-logo img { height: 56px; width: 56px; object-fit: contain; }
+    .setup-logo-name { font-size: 32px; font-weight: 900; color: var(--primary); letter-spacing: -0.8px; }
     .setup-tagline {
       text-align: center;
-      font-size: 13px;
-      color: var(--text-light);
+      font-size: 11px;
+      color: var(--text-mute);
       margin-bottom: 28px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      font-weight: 800;
     }
     .setup-step {
-      background: var(--bg);
+      background: var(--surface);
+      border: 1px solid var(--border);
       border-radius: var(--r);
       padding: 16px;
       margin-bottom: 14px;
     }
     .setup-step-title {
-      font-size: 11px;
-      font-weight: 800;
-      color: var(--text-light);
+      font-size: 10px;
+      font-weight: 900;
+      color: var(--text-mute);
       text-transform: uppercase;
-      letter-spacing: 0.8px;
+      letter-spacing: 1.4px;
       margin-bottom: 12px;
     }
     .setup-link {
@@ -694,7 +974,7 @@
       gap: 4px;
       color: var(--primary);
       font-size: 13px;
-      font-weight: 700;
+      font-weight: 800;
       text-decoration: none;
       margin-bottom: 10px;
     }
@@ -717,39 +997,43 @@
     }
     .btn-gen {
       padding: 0 14px;
-      background: white;
-      border: 2px solid var(--border);
+      background: var(--surface-2);
+      color: var(--text);
+      border: 1px solid var(--border);
       border-radius: var(--r-sm);
-      font-size: 22px;
+      font-size: 18px;
       cursor: pointer;
       transition: all 0.15s;
       flex-shrink: 0;
     }
-    .btn-gen:active { transform: scale(0.92); }
+    .btn-gen:active { transform: scale(0.92); background: var(--surface); }
     .setup-divider {
       text-align: center;
-      font-size: 12px;
-      color: var(--text-light);
+      font-size: 11px;
+      color: var(--text-mute);
       margin: 6px 0;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      font-weight: 800;
     }
     .setup-rules {
-      background: #F8FAFC;
+      background: var(--surface-2);
       border: 1px solid var(--border);
       border-radius: var(--r-sm);
       padding: 12px;
       margin-top: 10px;
     }
     .setup-rules-title {
-      font-size: 11px;
-      font-weight: 800;
-      color: var(--text-light);
+      font-size: 10px;
+      font-weight: 900;
+      color: var(--text-mute);
       margin-bottom: 8px;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+      letter-spacing: 1.2px;
     }
     .setup-rules pre {
       font-size: 10px;
-      color: #4A5568;
+      color: var(--text-light);
       white-space: pre-wrap;
       word-break: break-all;
       line-height: 1.5;
@@ -758,56 +1042,100 @@
 
     /* ── QR CARD ── */
     .qr-card {
-      background: white;
+      background: var(--surface);
+      border: 1px solid var(--border);
       border-radius: var(--r);
       padding: 16px 14px 14px;
       margin-bottom: 10px;
-      box-shadow: var(--shadow);
       text-align: center;
     }
     .qr-card-title {
-      font-size: 12px;
-      font-weight: 800;
-      color: var(--text-light);
+      font-size: 10px;
+      font-weight: 900;
+      color: var(--text-mute);
       text-transform: uppercase;
-      letter-spacing: 0.8px;
+      letter-spacing: 1.5px;
       margin-bottom: 12px;
     }
     .qr-wrap {
       display: flex;
       justify-content: center;
       margin-bottom: 10px;
+      padding: 10px;
+      background: white;
+      border-radius: 8px;
+      width: fit-content;
+      margin-left: auto;
+      margin-right: auto;
     }
     .qr-wrap img, .qr-wrap canvas {
-      border-radius: 8px;
-      border: 1px solid var(--border);
+      border-radius: 4px;
     }
     .qr-room-code {
-      font-size: 13px;
-      color: var(--text-light);
+      font-size: 11px;
+      color: var(--text-mute);
       margin-bottom: 10px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      font-weight: 800;
     }
     .qr-room-code strong {
       color: var(--text);
-      letter-spacing: 3px;
+      letter-spacing: 4px;
       font-size: 17px;
       font-weight: 900;
+      display: block;
+      margin-top: 6px;
     }
+    .invite-card { padding: 0; }
+    .invite-toggle {
+      width: 100%;
+      background: none;
+      border: none;
+      padding: 16px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.15s;
+      color: var(--text);
+    }
+    .invite-toggle { gap: 10px; }
+    .invite-toggle:active { background: var(--surface-2); }
+    .invite-plus {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--primary);
+      line-height: 1;
+      width: 24px;
+      flex-shrink: 0;
+      text-align: center;
+    }
+    .invite-jp {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-mute);
+      letter-spacing: 0.3px;
+      margin-left: auto;
+    }
+    .invite-body { padding: 0 14px 14px; }
+    .invite-body.hidden { display: none; }
 
     /* ── SHARE BOX ── */
     .share-box {
-      background: #EFF6FF;
-      border: 1.5px solid #BFDBFE;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
       border-radius: var(--r);
       padding: 12px 14px;
       margin-bottom: 10px;
     }
     .share-box-label {
-      font-size: 11px;
-      font-weight: 800;
-      color: #2563EB;
+      font-size: 10px;
+      font-weight: 900;
+      color: var(--primary);
       text-transform: uppercase;
-      letter-spacing: 0.7px;
+      letter-spacing: 1.3px;
       margin-bottom: 8px;
     }
     .share-url-row {
@@ -818,70 +1146,72 @@
     .share-url-text {
       flex: 1;
       font-size: 11px;
-      color: #1D4ED8;
+      color: var(--text-light);
       font-family: 'SF Mono', 'Consolas', monospace;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      background: white;
+      background: var(--bg);
       padding: 8px 10px;
       border-radius: 8px;
-      border: 1px solid #BFDBFE;
+      border: 1px solid var(--border);
       min-width: 0;
     }
     .share-copy-btn {
       flex-shrink: 0;
       padding: 8px 14px;
-      background: #2563EB;
-      color: white;
+      background: var(--primary);
+      color: #000;
       border: none;
       border-radius: 8px;
-      font-size: 13px;
-      font-weight: 700;
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
       cursor: pointer;
       transition: all 0.15s;
       font-family: inherit;
     }
-    .share-copy-btn:active { transform: scale(0.93); background: #1D4ED8; }
+    .share-copy-btn:active { transform: scale(0.93); background: var(--primary-dark); }
 
     /* ── PROJECT CARD ── */
     .project-card {
-      background: var(--card);
+      background: var(--surface);
+      border: 1px solid var(--border);
       border-radius: var(--r);
-      padding: 16px;
-      margin-bottom: 10px;
-      box-shadow: var(--shadow);
+      padding: 14px;
+      margin-bottom: 8px;
       cursor: pointer;
-      transition: transform 0.15s, box-shadow 0.15s;
-      border-left: 5px solid;
+      transition: transform 0.15s, border-color 0.15s;
+      border-left: 3px solid;
       display: flex;
       align-items: center;
       gap: 14px;
     }
     .project-card:active { transform: scale(0.98); }
-    .project-dot { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+    .project-dot { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
     .project-card-info { flex: 1; min-width: 0; }
-    .project-card-name { font-size: 16px; font-weight: 800; color: var(--text); }
-    .project-card-meta { font-size: 12px; color: var(--text-light); margin-top: 3px; }
+    .project-card-name { font-size: 15px; font-weight: 900; color: var(--text); letter-spacing: -0.2px; }
+    .project-card-meta { font-size: 11px; color: var(--text-mute); margin-top: 3px; font-weight: 700; letter-spacing: 0.3px; }
     .project-card-count { display: flex; flex-direction: column; align-items: flex-end; }
-    .project-card-num { font-size: 28px; font-weight: 900; line-height: 1; }
-    .project-card-lbl { font-size: 10px; color: var(--text-light); font-weight: 700; }
+    .project-card-num { font-size: 26px; font-weight: 900; line-height: 1; font-feature-settings: 'tnum'; }
+    .project-card-lbl { font-size: 9px; color: var(--text-mute); font-weight: 900; letter-spacing: 1.2px; text-transform: uppercase; margin-top: 2px; }
 
     /* ── PROJECT DETAIL HEADER ── */
     .project-header {
-      background: white;
+      background: var(--surface);
+      border: 1px solid var(--border);
       border-radius: var(--r);
       padding: 14px;
       margin-bottom: 14px;
-      box-shadow: var(--shadow);
       display: flex;
       align-items: center;
       gap: 12px;
-      border-left: 5px solid;
+      border-left: 4px solid;
     }
     .project-header-info { flex: 1; }
-    .project-header-name { font-size: 18px; font-weight: 900; }
-    .project-header-meta { font-size: 12px; color: var(--text-light); margin-top: 3px; }
+    .project-header-name { font-size: 17px; font-weight: 900; letter-spacing: -0.3px; }
+    .project-header-meta { font-size: 11px; color: var(--text-mute); margin-top: 3px; font-weight: 700; letter-spacing: 0.5px; }
 
     /* ── PROJECT OPTION (form) ── */
     .proj-opt {
@@ -890,15 +1220,15 @@
       align-items: center;
       gap: 5px;
       padding: 10px 6px 8px;
-      border: 2px solid var(--border);
+      border: 1px solid var(--border);
       border-radius: var(--r-sm);
       cursor: pointer;
       transition: all 0.15s;
-      background: white;
+      background: var(--surface-2);
       font-family: inherit;
     }
     .proj-opt.sel { border-color: var(--primary); background: var(--primary-light); }
-    .proj-opt-dot { width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0; }
+    .proj-opt-dot { width: 22px; height: 22px; border-radius: 6px; flex-shrink: 0; }
     .proj-opt-name { font-size: 11px; font-weight: 700; color: var(--text); text-align: center; line-height: 1.3; }
   </style>
 </head>
@@ -910,17 +1240,16 @@
     <div class="header-row">
       <div>
         <div class="logo">
-          <img class="logo-ball" src="ball.png" alt="">
-          <span class="logo-name">どっちボール</span>
+          <img class="logo-ball" src="ball.png?v=2" alt="">
+          <span class="logo-name">どっち!?ボール</span>
         </div>
-        <span class="logo-sub">ボールは今、誰にある？</span>
+        <span class="logo-sub">Who has the ball?</span>
         <div id="conn-badge">
           <div class="conn-dot connecting" id="conn-dot"></div>
           <span id="conn-text">接続中...</span>
         </div>
-        <div id="room-display" onclick="copyRoomCode()" title="タップでコピー"></div>
       </div>
-      <button class="btn-throw" id="btn-new">＋ 投げる</button>
+      <button class="btn-throw" id="btn-new">＋ PASS</button>
     </div>
   </header>
 
@@ -930,20 +1259,20 @@
   <!-- BOTTOM NAV -->
   <nav id="bottom-nav">
     <button class="nav-item active" data-tab="dashboard">
-      <span class="nav-icon">🏠</span>
-      <span class="nav-label">ホーム</span>
+      <span class="material-symbols-outlined nav-icon">stadium</span>
+      <span class="nav-label">Home</span>
     </button>
     <button class="nav-item" data-tab="balls">
-      <span class="nav-icon">🏐</span>
-      <span class="nav-label">ボール一覧</span>
+      <span class="material-symbols-outlined nav-icon">sports_volleyball</span>
+      <span class="nav-label">Balls</span>
     </button>
     <button class="nav-item" data-tab="projects">
-      <span class="nav-icon">📁</span>
-      <span class="nav-label">PJ管理</span>
+      <span class="material-symbols-outlined nav-icon">folder</span>
+      <span class="nav-label">Projects</span>
     </button>
     <button class="nav-item" data-tab="members">
-      <span class="nav-icon">👥</span>
-      <span class="nav-label">メンバー</span>
+      <span class="material-symbols-outlined nav-icon">groups</span>
+      <span class="nav-label">Players</span>
     </button>
   </nav>
 
@@ -953,8 +1282,8 @@
 <div id="setup-screen">
   <div class="setup-inner">
     <div class="setup-logo">
-      <img src="ball.png" alt="">
-      <span class="setup-logo-name">どっちボール</span>
+      <img src="ball.png?v=2" alt="">
+      <span class="setup-logo-name">どっち!?ボール</span>
     </div>
     <div class="setup-tagline">チームでリアルタイム共有</div>
 
@@ -969,7 +1298,7 @@
       </div>
     </div>
 
-    <button class="btn-main" onclick="doSetup()">🏐 はじめる！</button>
+    <button class="btn-main" onclick="doSetup()">はじめる！</button>
     <div class="setup-divider">─ または ─</div>
     <button class="btn-sub" onclick="useLocalMode()">ローカルモードで使う（共有なし）</button>
   </div>
@@ -982,7 +1311,7 @@
 
 <!-- THROW ANIMATION -->
 <div id="throw-anim" class="hidden">
-  <div class="ball-fly">🏐</div>
+  <img class="ball-fly" src="ball.png?v=2" alt="">
 </div>
 
 <!-- TOAST -->
@@ -1028,13 +1357,14 @@ let loading   = false;
 let _loadedMembers  = false;
 let _loadedBalls    = false;
 let _loadedProjects = false;
+let _loadedSOS      = false;
 let _pendingBallId  = null; // URLパラメータから取得したballId
 
 // ────────────────────────────────────────
 // STATE
 // ────────────────────────────────────────
 function defaultState() {
-  return { members: [], balls: [], projects: [] };
+  return { members: [], balls: [], projects: [], sos: [] };
 }
 let state = defaultState();
 
@@ -1087,6 +1417,70 @@ const getProject = id => state.projects.find(p => p.id === id);
 const activeBalls   = () => state.balls.filter(b => b.status === 'active');
 const ballsByHolder = mid => activeBalls().filter(b => b.currentHolder === mid);
 const ballsByProject = pid => activeBalls().filter(b => b.projectId === pid);
+
+// オーナー関連
+const getOwner = () => state.members.find(m => m.isOwner) || state.members[0] || null;
+const openSOS  = () => (state.sos || []).filter(s => !s.resolved);
+// オーナー1人の不変条件を強制する
+// - 0人 → 配列先頭メンバーを昇格
+// - 2人以上 → 配列先頭のオーナーを残し、他は降格
+function migrateOwnerIfNeeded() {
+  if (!state.members.length) return;
+  const owners = state.members.filter(m => m.isOwner);
+
+  if (owners.length === 1) return; // 正常
+
+  if (owners.length === 0) {
+    // 0人: 先頭メンバーを昇格
+    const first = state.members[0];
+    const updated = { ...first, isOwner: true };
+    if (localMode) {
+      const idx = state.members.findIndex(m => m.id === first.id);
+      if (idx !== -1) state.members[idx] = updated;
+      saveState();
+    } else {
+      fsSet('members', updated);
+    }
+    return;
+  }
+
+  // 2人以上: 配列先頭のオーナーだけ残し、他を降格
+  const keep = owners[0];
+  owners.slice(1).forEach(o => {
+    const demoted = { ...o, isOwner: false };
+    if (localMode) {
+      const idx = state.members.findIndex(m => m.id === o.id);
+      if (idx !== -1) state.members[idx] = demoted;
+    } else {
+      fsSet('members', demoted);
+    }
+  });
+  if (localMode) saveState();
+}
+
+// オーナー変更: 全メンバーを一度の操作で原子的に更新（Firestoreのbatchで0/2人状態を発生させない）
+function setOwner(memberId) {
+  const target = state.members.find(m => m.id === memberId);
+  if (!target) return;
+
+  if (localMode) {
+    state.members = state.members.map(m => ({ ...m, isOwner: m.id === memberId }));
+    saveState();
+    render();
+  } else if (db && roomCode) {
+    const batch = db.batch();
+    const col = db.collection('rooms').doc(roomCode).collection('members');
+    state.members.forEach(m => {
+      const updated = { ...m, isOwner: m.id === memberId };
+      batch.set(col.doc(m.id), updated);
+    });
+    batch.commit().catch(err => {
+      console.error('setOwner batch failed:', err);
+      toast('オーナー変更に失敗しました');
+    });
+  }
+  toast(`👑 ${target.name}をオーナーに設定しました`);
+}
 
 function daysUntil(dateStr) {
   if (!dateStr) return null;
@@ -1159,19 +1553,47 @@ function getRoomInviteUrl() {
   return window.location.origin + window.location.pathname + '?room=' + encodeURIComponent(roomCode);
 }
 
+const INVITE_OPEN_KEY = 'dotchiball_invite_open_v1';
+function isInviteOpen() {
+  try { return localStorage.getItem(INVITE_OPEN_KEY) === '1'; } catch(_) { return false; }
+}
+function toggleInviteSection() {
+  const open = !isInviteOpen();
+  try { localStorage.setItem(INVITE_OPEN_KEY, open ? '1' : '0'); } catch(_) {}
+  const body = document.getElementById('invite-body');
+  const chev = document.getElementById('invite-chev');
+  if (!body) return;
+  if (open) {
+    body.classList.remove('hidden');
+    chev.textContent = '−';
+    setTimeout(renderQR, 0);
+  } else {
+    body.classList.add('hidden');
+    chev.textContent = '+';
+  }
+}
+
 function renderQRCard() {
   if (localMode || !roomCode) return '';
-  return `<div class="qr-card">
-    <div class="qr-card-title">📱 このルームに招待</div>
-    <div class="qr-wrap" id="qr-code-wrap"></div>
-    <div class="qr-room-code">ルームコード: <strong>${esc(roomCode)}</strong></div>
-    <button class="share-copy-btn" style="width:100%" onclick="copyRoomInviteUrl()">🔗 招待URLをコピー</button>
+  const open = isInviteOpen();
+  return `<div class="qr-card invite-card">
+    <button type="button" class="invite-toggle" onclick="toggleInviteSection()">
+      <span class="invite-plus" id="invite-chev">${open ? '−' : '+'}</span>
+      <span class="qr-card-title" style="margin:0">Invite to Room</span>
+      <span class="invite-jp">このルームに招待</span>
+    </button>
+    <div id="invite-body" class="invite-body${open ? '' : ' hidden'}">
+      <button class="share-copy-btn" style="width:100%;margin-bottom:12px" onclick="copyRoomInviteUrl()">🔗 Copy Invite URL</button>
+      <div class="qr-wrap" id="qr-code-wrap"></div>
+      <div class="qr-room-code">Room Code<strong>${esc(roomCode)}</strong></div>
+    </div>
   </div>`;
 }
 
 function renderQR() {
   const wrap = document.getElementById('qr-code-wrap');
   if (!wrap || !roomCode || typeof QRCode === 'undefined') return;
+  if (!isInviteOpen()) return; // 折りたたみ時は描画スキップ
   wrap.innerHTML = '';
   const url = getRoomInviteUrl();
   new QRCode(wrap, { text: url, width: 140, height: 140, colorDark: '#1A202C', colorLight: '#ffffff' });
@@ -1201,9 +1623,28 @@ function copyShareUrl(ballId) {
 
 function avHTML(member, size = '') {
   const cls = 'av' + (size ? ` av-${size}` : '');
-  if (!member) return `<div class="${cls}" style="background:#A0AEC0">?</div>`;
+  if (!member) return `<div class="${cls}" style="background:#475569">?</div>`;
   const init = member.name.charAt(0);
   return `<div class="${cls}" style="background:${member.color}">${init}</div>`;
+}
+
+function fmtDueShort(dueDate) {
+  if (!dueDate) return '—';
+  const mins = minutesUntil(dueDate);
+  if (mins < 0) {
+    const absMins = Math.abs(Math.round(mins));
+    if (absMins < 60)  return `Over ${absMins}m`;
+    const h = Math.floor(absMins/60);
+    if (h < 24) return `Over ${h}h`;
+    return `Over ${Math.floor(h/24)}d`;
+  }
+  if (mins <= 60)   return `${Math.round(mins)}m`;
+  if (mins <= 1440) return `${Math.floor(mins/60)}h`;
+  return `${Math.ceil(mins/1440)}d`;
+}
+
+function prioShort(p) {
+  return p === 'high' ? 'HIGH' : p === 'medium' ? 'MID' : 'LOW';
 }
 
 function priLabel(p) {
@@ -1228,6 +1669,7 @@ function initFirebase(config, room) {
   _loadedMembers  = false;
   _loadedBalls    = false;
   _loadedProjects = false;
+  _loadedSOS      = false;
   setupListeners();
   updateConnBadge(null);
   showConnInfo();
@@ -1239,6 +1681,7 @@ function setupListeners() {
   room.collection('members').onSnapshot(snap => {
     state.members = snap.docs.map(d => d.data());
     _loadedMembers = true;
+    migrateOwnerIfNeeded();
     checkAllLoaded();
     render();
   }, err => {
@@ -1267,10 +1710,21 @@ function setupListeners() {
     console.error('projects listener:', err);
     updateConnBadge(false);
   });
+
+  room.collection('sos').onSnapshot(snap => {
+    state.sos = snap.docs.map(d => d.data());
+    state.sos.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    _loadedSOS = true;
+    checkAllLoaded();
+    render();
+  }, err => {
+    console.error('sos listener:', err);
+    updateConnBadge(false);
+  });
 }
 
 function checkAllLoaded() {
-  if (_loadedMembers && _loadedBalls && _loadedProjects && loading) {
+  if (_loadedMembers && _loadedBalls && _loadedProjects && _loadedSOS && loading) {
     loading = false;
     updateConnBadge(true);
     if (_pendingBallId) {
@@ -1299,8 +1753,7 @@ function updateConnBadge(connected) {
 
 function showConnInfo() {
   const rd = document.getElementById('room-display');
-  rd.style.display = 'block';
-  rd.textContent = `ルーム: ${roomCode}  (タップでコピー)`;
+  if (rd) { rd.style.display = 'block'; rd.textContent = `ルーム: ${roomCode}  (タップでコピー)`; }
 }
 
 // ────────────────────────────────────────
@@ -1357,9 +1810,11 @@ function useLocalMode() {
   localMode       = true;
   loading         = false;
   _loadedProjects = true;
+  _loadedSOS      = true;
   state           = loadLocalState();
+  if (!state.sos) state.sos = [];
   hideSetupScreen();
-  initDemo();
+  migrateOwnerIfNeeded();
   render();
 }
 
@@ -1409,6 +1864,7 @@ function render() {
       default:          main.innerHTML = renderDashboard(); setTimeout(renderQR, 0);
     }
   }
+  setTimeout(attachSwipeHandlersToCards, 0);
 }
 
 // ────────────────────────────────────────
@@ -1417,7 +1873,7 @@ function render() {
 function renderDashboard() {
   if (state.members.length === 0) {
     return `<div class="empty" style="padding-top:48px">
-      <div class="empty-icon">🏐</div>
+      <div class="empty-icon"><span class="material-symbols-outlined" style="font-size:80px;color:var(--primary)">groups</span></div>
       <div class="empty-title">ようこそ！</div>
       <div class="empty-text">チームメンバーを登録して<br>ボールを投げ合いましょう！<br><br>責任の所在を一目で把握できます。</div>
       <button class="btn-main" onclick="showAddMember()" style="max-width:240px">👥 メンバーを追加する</button>
@@ -1433,20 +1889,21 @@ function renderDashboard() {
   const overdue = active.filter(b => { const m=minutesUntil(b.dueDate); return m!==null && m<0; });
   const soon    = active.filter(b => { const m=minutesUntil(b.dueDate); return m!==null && m>=0 && m<=2880; });
 
-  let h = `<div style="position:relative">
-    <button onclick="showStatsHelp()" style="position:absolute;top:-2px;right:0;width:20px;height:20px;border-radius:50%;border:1.5px solid var(--text-light);background:none;color:var(--text-light);font-size:11px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;line-height:1;padding:0">?</button>
+  let h = renderSOSBanner();
+  h += `<div style="position:relative">
+    <button onclick="showStatsHelp()" style="position:absolute;top:-2px;right:0;width:20px;height:20px;border-radius:50%;border:1.5px solid var(--text-light);background:var(--surface);color:var(--text-light);font-size:11px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;line-height:1;padding:0;box-shadow:var(--shadow)">?</button>
   <div class="stats-grid">
-    <div class="stat-card">
+    <div class="stat-card tappable" onclick="gotoBallsFilter('all')">
       <div class="stat-num">${active.length}</div>
-      <div class="stat-lbl">🏐 総ボール</div>
+      <div class="stat-lbl">Total<span class="stat-lbl-jp">総数</span></div>
     </div>
-    <div class="stat-card ${overdue.length ? 'danger' : ''}">
+    <div class="stat-card tappable ${overdue.length ? 'danger' : ''}" onclick="gotoBallsFilter('overdue')">
       <div class="stat-num ${overdue.length ? 'pulse' : ''}">${overdue.length}</div>
-      <div class="stat-lbl">🔴 期限超過</div>
+      <div class="stat-lbl">Overdue<span class="stat-lbl-jp">期限超過</span></div>
     </div>
-    <div class="stat-card ${soon.length ? 'warn' : ''}">
+    <div class="stat-card tappable ${soon.length ? 'warn' : ''}" onclick="gotoBallsFilter('soon')">
       <div class="stat-num">${soon.length}</div>
-      <div class="stat-lbl">⚡ 要対応</div>
+      <div class="stat-lbl">Urgent<span class="stat-lbl-jp">要対応</span></div>
     </div>
   </div></div>`;
 
@@ -1471,14 +1928,14 @@ function renderDashboard() {
 
     const noPjBalls = active.filter(b => !b.projectId);
     if (noPjBalls.length) {
-      h += `<div class="project-card" style="border-left-color:#CBD5E0" onclick="drillProject('__none__')">
-        <div class="project-dot" style="background:#F1F5F9">📋</div>
+      h += `<div class="project-card" style="border-left-color:#475569" onclick="drillProject('__none__')">
+        <div class="project-dot" style="background:#1F252E">📋</div>
         <div class="project-card-info">
           <div class="project-card-name">プロジェクト未設定</div>
           <div class="project-card-meta">${noPjBalls.length}件のボール</div>
         </div>
         <div class="project-card-count">
-          <div class="project-card-num" style="color:#A0AEC0">${noPjBalls.length}</div>
+          <div class="project-card-num" style="color:#5B6675">${noPjBalls.length}</div>
           <div class="project-card-lbl">ボール</div>
         </div>
       </div>`;
@@ -1500,21 +1957,26 @@ function renderDashboard() {
         <div class="empty-text">今は誰もボールを持っていません。<br>新しいタスクを投げましょう！</div>
       </div>`;
     } else {
-      h += `<div class="sec-title">メンバー別ボール</div>`;
+      h += `<div class="sec-title">Active Players · ${active.length} Balls</div>`;
       state.members.forEach(m => {
         const balls = ballsByHolder(m.id);
         if (!balls.length) return;
+        const meta = m.isOwner ? `OWNER · ${balls.length} ACTIVE` : `${balls.length} ACTIVE`;
         h += `<div class="player-section">
           <div class="ps-header">
-            <div class="ps-left">${avHTML(m)}<span class="ps-name">${esc(m.name)}</span></div>
+            <div class="ps-left">${avHTML(m)}
+              <div>
+                <div class="ps-name">${esc(m.name)}${m.isOwner ? ' <span class="owner-mark">👑</span>' : ''}</div>
+                <div class="ps-meta">${meta}</div>
+              </div>
+            </div>
             <div class="ball-count">${balls.length}</div>
           </div>
           ${balls.slice(0,3).map(b => ballCardMini(b)).join('')}
           ${balls.length > 3 ? `
             <div id="extra-${m.id}" style="display:none">${balls.slice(3).map(b => ballCardMini(b)).join('')}</div>
-            <button id="extra-btn-${m.id}" onclick="toggleExtra('${m.id}',${balls.length-3})"
-              style="width:100%;text-align:center;font-size:12px;color:var(--text-light);margin-top:6px;background:none;border:none;cursor:pointer;padding:8px 0;font-family:inherit">
-              他 ${balls.length-3} 件を表示 ∨
+            <button id="extra-btn-${m.id}" onclick="toggleExtra('${m.id}',${balls.length-3})" class="more-btn">
+              + ${balls.length-3} More
             </button>` : ''}
         </div>`;
       });
@@ -1522,8 +1984,13 @@ function renderDashboard() {
       if (unassigned.length) {
         h += `<div class="player-section">
           <div class="ps-header">
-            <div class="ps-left"><div class="av" style="background:#A0AEC0">?</div><span class="ps-name">未割当</span></div>
-            <div class="ball-count" style="background:#A0AEC0">${unassigned.length}</div>
+            <div class="ps-left"><div class="av" style="background:#475569">?</div>
+              <div>
+                <div class="ps-name">Unassigned</div>
+                <div class="ps-meta">${unassigned.length} ACTIVE</div>
+              </div>
+            </div>
+            <div class="ball-count">${unassigned.length}</div>
           </div>
           ${unassigned.map(b => ballCardMini(b)).join('')}
         </div>`;
@@ -1542,7 +2009,7 @@ function renderProjectDashboard(projectId) {
   const pjBalls   = isNone ? activeBalls().filter(b => !b.projectId) : ballsByProject(projectId);
   const pjOverdue = pjBalls.filter(b => { const m=minutesUntil(b.dueDate); return m!==null && m<0; });
   const pjSoon    = pjBalls.filter(b => { const m=minutesUntil(b.dueDate); return m!==null && m>=0 && m<=2880; });
-  const color     = pj?.color || '#CBD5E0';
+  const color     = pj?.color || '#475569';
 
   let h = `<div class="project-header" style="border-left-color:${color}">
     <div class="project-dot" style="background:${color}22">${isNone ? '📋' : '📁'}</div>
@@ -1563,21 +2030,26 @@ function renderProjectDashboard(projectId) {
     return h;
   }
 
-  h += `<div class="sec-title">メンバー別ボール</div>`;
+  h += `<div class="sec-title">Active Players · ${pjBalls.length} Balls</div>`;
   state.members.forEach(m => {
     const balls = pjBalls.filter(b => b.currentHolder === m.id);
     if (!balls.length) return;
+    const meta = m.isOwner ? `OWNER · ${balls.length} ACTIVE` : `${balls.length} ACTIVE`;
     h += `<div class="player-section">
       <div class="ps-header">
-        <div class="ps-left">${avHTML(m)}<span class="ps-name">${esc(m.name)}</span></div>
+        <div class="ps-left">${avHTML(m)}
+          <div>
+            <div class="ps-name">${esc(m.name)}${m.isOwner ? ' <span class="owner-mark">👑</span>' : ''}</div>
+            <div class="ps-meta">${meta}</div>
+          </div>
+        </div>
         <div class="ball-count">${balls.length}</div>
       </div>
       ${balls.slice(0,3).map(b => ballCardMini(b)).join('')}
       ${balls.length > 3 ? `
         <div id="extra-${m.id}" style="display:none">${balls.slice(3).map(b => ballCardMini(b)).join('')}</div>
-        <button id="extra-btn-${m.id}" onclick="toggleExtra('${m.id}',${balls.length-3})"
-          style="width:100%;text-align:center;font-size:12px;color:var(--text-light);margin-top:6px;background:none;border:none;cursor:pointer;padding:8px 0;font-family:inherit">
-          他 ${balls.length-3} 件を表示 ∨
+        <button id="extra-btn-${m.id}" onclick="toggleExtra('${m.id}',${balls.length-3})" class="more-btn">
+          + ${balls.length-3} More
         </button>` : ''}
     </div>`;
   });
@@ -1586,8 +2058,13 @@ function renderProjectDashboard(projectId) {
   if (unassigned.length) {
     h += `<div class="player-section">
       <div class="ps-header">
-        <div class="ps-left"><div class="av" style="background:#A0AEC0">?</div><span class="ps-name">未割当</span></div>
-        <div class="ball-count" style="background:#A0AEC0">${unassigned.length}</div>
+        <div class="ps-left"><div class="av" style="background:#475569">?</div>
+          <div>
+            <div class="ps-name">Unassigned</div>
+            <div class="ps-meta">${unassigned.length} ACTIVE</div>
+          </div>
+        </div>
+        <div class="ball-count">${unassigned.length}</div>
       </div>
       ${unassigned.map(b => ballCardMini(b)).join('')}
     </div>`;
@@ -1599,25 +2076,35 @@ function renderProjectDashboard(projectId) {
 function drillProject(pid) { curProjectId = pid; render(); window.scrollTo(0, 0); }
 function drillBack()        { curProjectId = null; render(); window.scrollTo(0, 0); }
 
-function ballCardMini(ball) {
-  const urg    = urgency(ball);
-  const holder = getMember(ball.currentHolder);
-  return `<div class="ball-card ${urg}" onclick="viewBall('${ball.id}')">
-    <div class="card-top">
-      <div class="ball-emoji">${ballIcon(ball.priority)}</div>
-      <div class="ball-info">
-        <div class="ball-title">${esc(ball.title)}</div>
-        <div class="badges">
-          <span class="badge ${urg}">${fmtDue(ball.dueDate)}</span>
-          <span class="badge ${ball.priority}">${priLabel(ball.priority)}</span>
-        </div>
-      </div>
-    </div>
-    <div class="card-bottom">
-      <div class="holder-row">${avHTML(holder,'sm')}<span class="holder-name">${holder ? esc(holder.name) : '未割当'}</span></div>
-      <button class="throw-btn" onclick="event.stopPropagation();showThrowModal('${ball.id}')">投げる ➤</button>
-    </div>
+function swipeWrap(inner, ballId, isDone) {
+  if (isDone) return inner;
+  return `<div class="ball-card-wrap">
+    <div class="swipe-bg swipe-bg-throw">Pass</div>
+    <div class="swipe-bg swipe-bg-sos">SOS</div>
+    ${inner}
   </div>`;
+}
+
+function swipeHintBar() {
+  return `<div class="swipe-hint-bar">
+    <span class="arr"><span class="material-symbols-outlined">chevron_left</span>SOS</span>
+    <span class="arr">Complete<span class="material-symbols-outlined">expand_less</span></span>
+    <span class="arr">Pass<span class="material-symbols-outlined">chevron_right</span></span>
+  </div>`;
+}
+
+function ballCardMini(ball) {
+  const urg = urgency(ball);
+  return swipeWrap(`<div class="ball-card ${urg}" data-ball-id="${ball.id}" onclick="viewBall('${ball.id}')">
+    <div class="card-row1">
+      <div class="urg-dot ${urg}"></div>
+      <div class="card-time ${urg}">${fmtDueShort(ball.dueDate)}</div>
+      <div class="card-prio ${ball.priority}">${prioShort(ball.priority)}</div>
+    </div>
+    <div class="ball-title">${esc(ball.title)}</div>
+    ${ball.description ? `<div class="ball-desc">${esc(ball.description)}</div>` : ''}
+    ${swipeHintBar()}
+  </div>`, ball.id, false);
 }
 
 // ────────────────────────────────────────
@@ -1660,13 +2147,19 @@ function renderBallsList() {
 
   let filtered = curFilter === 'done' ? done
     : curFilter === 'all' ? active
+    : curFilter === 'overdue' ? active.filter(b => { const m=minutesUntil(b.dueDate); return m!==null && m<0; })
+    : curFilter === 'soon'    ? active.filter(b => { const m=minutesUntil(b.dueDate); return m!==null && m>=0 && m<=2880; })
     : active.filter(b => b.currentHolder === curFilter);
 
   const uOrder = { urgent:0, warning:1, normal:2, 'no-date':3, done:4 };
   filtered = [...filtered].sort((a,b) => (uOrder[urgency(a)]||0) - (uOrder[urgency(b)]||0));
 
+  const overdueCnt = active.filter(b => { const m=minutesUntil(b.dueDate); return m!==null && m<0; }).length;
+  const soonCnt    = active.filter(b => { const m=minutesUntil(b.dueDate); return m!==null && m>=0 && m<=2880; }).length;
   const tabs = [
     { key:'all', label:'全て', count: active.length },
+    ...(curFilter === 'overdue' || overdueCnt > 0 ? [{ key:'overdue', label:'🔴 期限超過', count: overdueCnt }] : []),
+    ...(curFilter === 'soon'    || soonCnt    > 0 ? [{ key:'soon',    label:'⚡ 要対応',  count: soonCnt    }] : []),
     ...state.members.map(m => ({ key:m.id, label:m.name, count: active.filter(b=>b.currentHolder===m.id).length, color: m.color })),
     { key:'done', label:'完了', count: done.length },
   ];
@@ -1682,11 +2175,29 @@ function renderBallsList() {
 
   if (!filtered.length) {
     const preProj = (curBallProjectFilter && curBallProjectFilter !== '__none__') ? `'${curBallProjectFilter}'` : 'null';
+    const isSpecial = curFilter==='overdue' || curFilter==='soon';
+    const icon =
+      curFilter==='done' ? '✅' :
+      curFilter==='overdue' ? '🎉' :
+      curFilter==='soon' ? '👍' :
+      curFilter==='all' ? '🎉' : '😊';
+    const title =
+      curFilter==='done' ? '完了ボールなし' :
+      curFilter==='overdue' ? '期限超過のボールなし！' :
+      curFilter==='soon' ? '要対応のボールなし！' :
+      curFilter==='all' ? 'ボールなし！' :
+      `${esc(getMember(curFilter)?.name??'')}さんはボールなし`;
+    const text =
+      curFilter==='overdue' ? '期限超過のタスクはありません 🎊' :
+      curFilter==='soon' ? '48時間以内に期限を迎えるタスクはありません' :
+      curFilter==='all' ? '新しいボールを投げましょう！' :
+      'このメンバーはフリーです！';
+    const presetHolder = (curFilter==='all' || isSpecial) ? '' : curFilter;
     h += `<div class="empty">
-      <div class="empty-icon">${curFilter==='done'?'✅':curFilter==='all'?'🎉':'😊'}</div>
-      <div class="empty-title">${curFilter==='done'?'完了ボールなし':curFilter==='all'?'ボールなし！':`${esc(getMember(curFilter)?.name??'')}さんはボールなし`}</div>
-      <div class="empty-text">${curFilter==='all'?'新しいボールを投げましょう！':'このメンバーはフリーです！'}</div>
-      ${curFilter!=='done'?`<button class="btn-main" onclick="showCreateModal(null,'${curFilter==='all'?'':curFilter}',${preProj})" style="max-width:200px">🏐 投げる！</button>`:''}
+      <div class="empty-icon">${icon}</div>
+      <div class="empty-title">${title}</div>
+      <div class="empty-text">${text}</div>
+      ${curFilter!=='done'?`<button class="btn-main" onclick="showCreateModal(null,'${presetHolder}',${preProj})" style="max-width:200px">🏐 投げる！</button>`:''}
     </div>`;
     return h;
   }
@@ -1701,25 +2212,17 @@ function ballCardFull(ball) {
   const urg    = urgency(ball);
   const holder = getMember(ball.currentHolder);
   const isDone = ball.status === 'done';
-  return `<div class="ball-card ${urg} ${isDone?'done-card':''}" onclick="viewBall('${ball.id}')">
-    <div class="card-top">
-      <div class="ball-emoji">${isDone ? '✅' : ballIcon(ball.priority)}</div>
-      <div class="ball-info">
-        <div class="ball-title" style="${isDone?'text-decoration:line-through':''}">${esc(ball.title)}</div>
-        ${ball.description ? `<div class="ball-desc">${esc(ball.description)}</div>` : ''}
-        <div class="badges">
-          <span class="badge ${urg}">${fmtDue(ball.dueDate)}</span>
-          <span class="badge ${ball.priority}">${priLabel(ball.priority)}</span>
-        </div>
-      </div>
+  return swipeWrap(`<div class="ball-card ${urg} ${isDone?'done-card':''}" data-ball-id="${ball.id}" onclick="viewBall('${ball.id}')">
+    <div class="card-row1">
+      <div class="urg-dot ${urg}"></div>
+      <div class="card-time ${urg}">${isDone ? 'Done' : fmtDueShort(ball.dueDate)}</div>
+      <div class="card-prio ${ball.priority}">${prioShort(ball.priority)}</div>
     </div>
-    <div class="card-bottom">
-      <div class="holder-row">${avHTML(holder,'sm')}<span class="holder-name">${holder?esc(holder.name):'未割当'}</span></div>
-      ${isDone
-        ? `<span style="font-size:12px;color:var(--success);font-weight:800">完了 ✓</span>`
-        : `<button class="throw-btn" onclick="event.stopPropagation();showThrowModal('${ball.id}')">投げる ➤</button>`}
-    </div>
-  </div>`;
+    <div class="ball-title" style="${isDone?'text-decoration:line-through':''}">${esc(ball.title)}</div>
+    ${ball.description ? `<div class="ball-desc">${esc(ball.description)}</div>` : ''}
+    <div class="holder-row" style="margin-top:10px;margin-bottom:0">${avHTML(holder,'sm')}<span class="holder-name">${holder?esc(holder.name):'Unassigned'}</span></div>
+    ${isDone ? '' : swipeHintBar()}
+  </div>`, ball.id, isDone);
 }
 
 // ────────────────────────────────────────
@@ -1827,12 +2330,12 @@ function renderDetail(ballId) {
 // MEMBERS SCREEN
 // ────────────────────────────────────────
 function renderMembers() {
-  let h = `<button class="btn-main" onclick="showAddMember()" style="margin-bottom:14px">＋ メンバーを追加</button>`;
+  let h = `<button class="btn-main" onclick="showAddMember()" style="margin-bottom:14px">＋ Add Player</button>`;
 
   if (!state.members.length) {
     h += `<div class="empty">
       <div class="empty-icon">👥</div>
-      <div class="empty-title">メンバーなし</div>
+      <div class="empty-title">No Players</div>
       <div class="empty-text">チームメンバーを追加して<br>タスクを割り当てましょう！</div>
     </div>`;
     return h;
@@ -1841,11 +2344,13 @@ function renderMembers() {
   state.members.forEach(m => {
     const cnt  = ballsByHolder(m.id).length;
     const done = state.balls.filter(b => b.status==='done' && b.history.some(hh=>hh.to===m.id || hh.from===m.id)).length;
-    h += `<div class="member-card">
+    const isOwner = !!m.isOwner;
+    h += `<div class="member-card${isOwner ? ' is-owner' : ''}">
       ${avHTML(m, 'lg')}
       <div class="mc-info">
-        <div class="mc-name">${esc(m.name)}</div>
-        <div class="mc-stat">保持中: ${cnt}個 ／ 関連完了: ${done}個</div>
+        <div class="mc-name">${esc(m.name)}${isOwner ? ' <span class="owner-crown" title="ルームオーナー">👑</span>' : ''}</div>
+        <div class="mc-stat">${cnt} Active · ${done} Done</div>
+        ${!isOwner ? `<button class="mc-owner-btn" onclick="setOwner('${m.id}')">Make Owner</button>` : '<div class="mc-owner-label">👑 Room Owner</div>'}
       </div>
       <div class="mc-actions">
         <button class="icon-btn" onclick="showAddMember('${m.id}')">✏️</button>
@@ -2072,8 +2577,8 @@ function showAddMember(editId = null) {
       <input class="finput" id="f-mname" type="text" placeholder="例: 田中さん" maxlength="20" value="${m ? esc(m.name) : ''}" autocomplete="off">
     </div>
     <div class="fgroup">
-      <label class="flabel">メールアドレス（通知用・任意）</label>
-      <input class="finput" id="f-memail" type="email" placeholder="例: tanaka@example.com" value="${m?.email ? esc(m.email) : ''}" autocomplete="off">
+      <label class="flabel">メールアドレス（通知用・任意）${localMode ? '<span class="hint-disabled">— ローカルモードでは無効</span>' : ''}</label>
+      <input class="finput" id="f-memail" type="email" placeholder="${localMode ? 'ローカルモードでは利用不可' : '例: tanaka@example.com'}" value="${m?.email ? esc(m.email) : ''}" autocomplete="off" ${localMode ? 'disabled' : ''}>
     </div>
     <div class="fgroup">
       <label class="flabel">カラー</label>
@@ -2290,7 +2795,8 @@ function doAddMember() {
   const color = document.getElementById('f-mcolor')?.value || COLORS[0];
   if (!name) { toast('名前を入力してください'); document.getElementById('f-mname')?.focus(); return; }
 
-  const member = { id: uid(), name, email: email || '', color };
+  const isFirstMember = state.members.length === 0;
+  const member = { id: uid(), name, email: email || '', color, isOwner: isFirstMember };
 
   if (localMode) {
     state.members.push(member);
@@ -2301,7 +2807,7 @@ function doAddMember() {
   }
 
   hideModal();
-  toast(`👤 ${name} を追加しました！`);
+  toast(`👤 ${name} を追加しました！${isFirstMember ? '\n👑 オーナーになりました' : ''}`);
 }
 
 function doEditMember(memberId) {
@@ -2329,12 +2835,23 @@ function doEditMember(memberId) {
 }
 
 function doDeleteMember(memberId) {
+  const wasOwner = getMember(memberId)?.isOwner;
   if (localMode) {
     state.members = state.members.filter(m => m.id !== memberId);
+    if (wasOwner && state.members.length) {
+      state.members[0] = { ...state.members[0], isOwner: true };
+    }
     saveState();
     render();
   } else {
-    fsDelete('members', memberId);
+    fsDelete('members', memberId).then(() => {
+      if (wasOwner) {
+        const remaining = state.members.filter(m => m.id !== memberId);
+        if (remaining.length) {
+          fsSet('members', { ...remaining[0], isOwner: true });
+        }
+      }
+    });
   }
 
   hideModal();
@@ -2403,6 +2920,245 @@ function doDeleteProject(projectId) {
 }
 
 // ────────────────────────────────────────
+// SWIPE GESTURES
+// ────────────────────────────────────────
+function attachSwipe(el, { onSwipeUp, onSwipeRight, onSwipeLeft }) {
+  if (el._swipeAttached) return;
+  el._swipeAttached = true;
+
+  let startX = 0, startY = 0;
+  let dx = 0, dy = 0;
+  let hLocked = false, vLocked = false;
+  const H_THRESHOLD = 70;
+  const V_THRESHOLD = 55;
+  const LOCK_PX = 8;
+
+  const resetArmed = () => {
+    const wrap = el.closest('.ball-card-wrap');
+    if (wrap) wrap.classList.remove('swipe-armed-right', 'swipe-armed-left', 'swipe-armed-up');
+  };
+
+  el.addEventListener('touchstart', (e) => {
+    if (e.touches.length > 1) return;
+    const t = e.touches[0];
+    startX = t.clientX; startY = t.clientY;
+    dx = 0; dy = 0;
+    hLocked = false; vLocked = false;
+    el.style.transition = 'none';
+  }, { passive: true });
+
+  el.addEventListener('touchmove', (e) => {
+    if (e.touches.length > 1) return;
+    const t = e.touches[0];
+    dx = t.clientX - startX;
+    dy = t.clientY - startY;
+
+    if (!hLocked && !vLocked) {
+      // 水平に動いたら hLock、明確に上方向(20px以上)なら vLock
+      if (Math.abs(dx) > Math.abs(dy) + LOCK_PX && Math.abs(dx) > 10) {
+        hLocked = true;
+      } else if (dy < -20 && Math.abs(dy) > Math.abs(dx) + LOCK_PX) {
+        vLocked = true;
+      }
+    }
+
+    const wrap = el.closest('.ball-card-wrap');
+
+    if (hLocked) {
+      e.preventDefault();
+      el.style.transform = `translateX(${dx}px)`;
+      if (wrap) {
+        const past = Math.abs(dx) > H_THRESHOLD;
+        wrap.classList.toggle('swipe-armed-right', past && dx > 0);
+        wrap.classList.toggle('swipe-armed-left',  past && dx < 0);
+      }
+    } else if (vLocked) {
+      e.preventDefault();
+      // 上スワイプは抵抗感を出すため移動量の70%
+      const visualDy = dy * 0.7;
+      el.style.transform = `translateY(${visualDy}px)`;
+      el.style.opacity = `${1 - Math.min(Math.abs(dy) / 180, 0.5)}`;
+      if (wrap) wrap.classList.toggle('swipe-armed-up', dy < -V_THRESHOLD);
+    }
+  }, { passive: false });
+
+  el.addEventListener('touchend', () => {
+    let triggered = false;
+
+    if (hLocked && Math.abs(dx) > H_THRESHOLD) {
+      triggered = true;
+      if (dx > 0 && onSwipeRight) onSwipeRight();
+      else if (dx < 0 && onSwipeLeft) onSwipeLeft();
+    } else if (vLocked && dy < -V_THRESHOLD && onSwipeUp) {
+      triggered = true;
+      onSwipeUp();
+    }
+
+    el.style.transition = 'transform 0.2s, opacity 0.2s';
+    el.style.transform = '';
+    el.style.opacity = '';
+    resetArmed();
+
+    if (triggered) {
+      const cancelClick = (ev) => { ev.stopPropagation(); ev.preventDefault(); };
+      el.addEventListener('click', cancelClick, true);
+      setTimeout(() => el.removeEventListener('click', cancelClick, true), 400);
+    }
+  }, { passive: true });
+
+  el.addEventListener('touchcancel', () => {
+    el.style.transition = 'transform 0.2s, opacity 0.2s';
+    el.style.transform = '';
+    el.style.opacity = '';
+    resetArmed();
+  });
+}
+
+function attachSwipeHandlersToCards() {
+  document.querySelectorAll('.ball-card[data-ball-id]').forEach(el => {
+    const id = el.dataset.ballId;
+    const ball = getBall(id);
+    if (!ball || ball.status === 'done') return;
+    attachSwipe(el, {
+      onSwipeUp:    () => completeBall(id),
+      onSwipeRight: () => showThrowModal(id),
+      onSwipeLeft:  () => showSOSConfirm(id),
+    });
+  });
+}
+
+// ────────────────────────────────────────
+// SOS
+// ────────────────────────────────────────
+function renderSOSBanner() {
+  const list = openSOS();
+  if (!list.length) return '';
+  const owner = getOwner();
+  return `<div class="sos-banner" onclick="showSOSList()">
+    <div class="sos-banner-icon">🆘</div>
+    <div class="sos-banner-body">
+      <div class="sos-banner-title">SOS ${list.length}件</div>
+      <div class="sos-banner-sub">${owner ? `${esc(owner.name)}さん、` : ''}ヘルプ要請が届いています（タップで確認）</div>
+    </div>
+    <div class="sos-banner-chev">›</div>
+  </div>`;
+}
+
+function sendSOS(ballId = null, message = '') {
+  const ball  = ballId ? getBall(ballId) : null;
+  const owner = getOwner();
+  const sos = {
+    id: uid(),
+    ballId: ballId || null,
+    ballTitle: ball ? ball.title : '',
+    fromMemberId: ball?.currentHolder || null,
+    fromName: ball ? (getMember(ball.currentHolder)?.name || '') : '',
+    message: message || '',
+    createdAt: new Date().toISOString(),
+    resolved: false,
+    resolvedAt: null,
+  };
+
+  if (localMode) {
+    state.sos = state.sos || [];
+    state.sos.unshift(sos);
+    saveState();
+    render();
+  } else {
+    fsSet('sos', sos);
+  }
+
+  // オーナーにメール通知（ローカルモードでは送らない）
+  if (!localMode && owner && owner.email) {
+    const url = ball ? (generateShareUrl(ball.id) || '') : '';
+    emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+      to_name:    owner.name,
+      email:      owner.email,
+      ball_title: ball ? `[SOS] ${ball.title}` : '[SOS] ヘルプ要請',
+      due_date:   ball ? fmtDate(ball.dueDate) : '-',
+      priority:   '🆘 SOS',
+      note:       (sos.fromName ? `${sos.fromName}さんから: ` : '') + (message || 'ヘルプ要請が届いています'),
+      ball_url:   url,
+    }).catch(err => console.warn('SOSメール送信失敗:', err));
+  }
+
+  toast(`🆘 オーナー(${owner?.name || '未設定'})にSOSを送りました`);
+}
+
+function resolveSOS(sosId) {
+  const s = (state.sos || []).find(x => x.id === sosId);
+  if (!s) return;
+  const updated = { ...s, resolved: true, resolvedAt: new Date().toISOString() };
+  if (localMode) {
+    const idx = state.sos.findIndex(x => x.id === sosId);
+    if (idx !== -1) state.sos[idx] = updated;
+    saveState();
+    render();
+  } else {
+    fsSet('sos', updated);
+  }
+  toast('✅ SOSを対応済みにしました');
+}
+
+function showSOSList() {
+  const list = openSOS();
+  if (!list.length) {
+    showModal(`
+      <div class="modal-title">🆘 SOS一覧</div>
+      <div class="empty" style="padding:20px 0">
+        <div class="empty-icon">👍</div>
+        <div class="empty-text">未対応のSOSはありません</div>
+      </div>
+      <button class="btn-sub" onclick="hideModal()">閉じる</button>
+    `);
+    return;
+  }
+  let body = list.map(s => {
+    const ball = s.ballId ? getBall(s.ballId) : null;
+    return `<div class="sos-item">
+      <div class="sos-item-head">
+        <span class="sos-item-from">${esc(s.fromName || '不明')}</span>
+        <span class="sos-item-time">${fmtDT(s.createdAt)}</span>
+      </div>
+      ${ball ? `<div class="sos-item-ball" onclick="hideModal();viewBall('${ball.id}')">📌 ${esc(ball.title)}</div>` : '<div class="sos-item-ball muted">（タスク指定なし）</div>'}
+      ${s.message ? `<div class="sos-item-msg">💬 ${esc(s.message)}</div>` : ''}
+      <button class="btn-sub" style="margin-top:8px" onclick="resolveSOS('${s.id}')">✅ 対応済みにする</button>
+    </div>`;
+  }).join('');
+  showModal(`
+    <div class="modal-title">🆘 SOS一覧（${list.length}件）</div>
+    <div class="sos-list">${body}</div>
+    <button class="btn-sub" onclick="hideModal()">閉じる</button>
+  `);
+}
+
+function showSOSConfirm(ballId = null) {
+  const ball = ballId ? getBall(ballId) : null;
+  const owner = getOwner();
+  if (!owner) { toast('オーナーが設定されていません'); return; }
+  showModal(`
+    <div class="modal-title">🆘 SOSを送る</div>
+    <div style="font-size:14px;color:var(--text-light);margin-bottom:14px;line-height:1.6">
+      ${ball ? `「${esc(ball.title)}」について<br>` : ''}
+      オーナーの<strong>${esc(owner.name)}</strong>さんにヘルプ要請を送ります。
+    </div>
+    <div class="fgroup">
+      <label class="flabel">メッセージ（任意）</label>
+      <input class="finput" id="f-sos-msg" type="text" placeholder="例: 期限に間に合いそうにありません" maxlength="200" autocomplete="off">
+    </div>
+    <button class="btn-main red" onclick="doSendSOS(${ballId ? `'${ballId}'` : 'null'})">🆘 送信する</button>
+    <button class="btn-sub" onclick="hideModal()">キャンセル</button>
+  `);
+  setTimeout(() => document.getElementById('f-sos-msg')?.focus(), 120);
+}
+
+function doSendSOS(ballId) {
+  const msg = document.getElementById('f-sos-msg')?.value.trim() || '';
+  hideModal();
+  sendSOS(ballId || null, msg);
+}
+
+// ────────────────────────────────────────
 // NAVIGATION
 // ────────────────────────────────────────
 function showStatsHelp() {
@@ -2444,6 +3200,14 @@ function setTab(tab) {
   render();
 }
 function setFilter(f) { curFilter = f; render(); }
+function gotoBallsFilter(filterKey) {
+  curTab    = 'balls';
+  curBallId = null;
+  curFilter = filterKey;
+  curBallProjectFilter = null;
+  render();
+  window.scrollTo(0, 0);
+}
 function viewBall(id) { curBallId = id; render(); window.scrollTo(0,0); }
 function goBack() { curBallId = null; render(); }
 
@@ -2501,7 +3265,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') hideModal();
 function initDemo() {
   if (state.members.length || state.balls.length) return;
 
-  const m1 = { id:uid(), name:'田中さん',  color:'#3B82F6' };
+  const m1 = { id:uid(), name:'田中さん',  color:'#3B82F6', isOwner: true };
   const m2 = { id:uid(), name:'鈴木さん',  color:'#EF4444' };
   const m3 = { id:uid(), name:'佐藤さん',  color:'#10B981' };
   state.members = [m1, m2, m3];
@@ -2597,6 +3361,7 @@ function checkReminders() {
 setInterval(checkReminders, 60000); // 1分ごとにチェック
 
 function sendEmailNotification(ball, toMember, note) {
+  if (localMode) return;
   if (!toMember || !toMember.email) return;
   const url = generateShareUrl(ball.id) || '';
   emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
@@ -2620,9 +3385,14 @@ function sendEmailNotification(ball, toMember, note) {
 
   const setup = loadSetup();
   if (setup && setup.roomCode) {
+    // URLにルームコードがあればそれを優先し、保存内容も更新する
+    const targetRoom = urlRoom || setup.roomCode;
+    if (urlRoom && urlRoom !== setup.roomCode) {
+      saveSetup(setup.config, urlRoom);
+    }
     try {
-      initFirebase(EMBEDDED_CONFIG, setup.roomCode);
-      if (urlRoom === setup.roomCode && urlBall) _pendingBallId = urlBall;
+      initFirebase(EMBEDDED_CONFIG, targetRoom);
+      if (urlBall) _pendingBallId = urlBall;
       hideSetupScreen();
       render(); // shows spinner while listeners load
     } catch(e) {
